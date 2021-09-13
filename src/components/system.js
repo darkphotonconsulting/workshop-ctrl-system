@@ -23,7 +23,7 @@ import StarBorder from "@material-ui/icons/StarBorder";
 import Divider from "@material-ui/core/Divider";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 //import {ReactCompicture} from "../static/images/cards/system/test.jpg"
-//import {ReactComponent as PiSvg } from "../static/images/cards/system/pi.svg"
+import {ReactComponent as PiSvg } from "../static/images/cards/system/pi.svg"
 const useStyles = makeStyles((theme) => ({
   root: {
     //width: "100%",
@@ -80,38 +80,46 @@ const System = ({ system }) => {
 
   //generate accordion items for system page
   const list_items = Object.keys(system).map((key, index) => (
-    <React.Fragment>
+    <React.Fragment key={`frag-${key.toString()}`}>
       <ListItem
         button
         onClick={handleClick}
         alignItems="flex-start"
-        key={`key-${system[key].toString()}`}
+        key={`key-${key.toString()}`}
+        component="li"
       >
         <ListItemText primary={key} />
         {open ? <ExpandLess /> : <ExpandMore />}
       </ListItem>
-      <Collapse in={open} timeout="auto" unmountOnExit>
-        <List
-          component="div"
-          key={`innerlist-${system[key].toString()}`}
-          disablePadding
-        >
+      <Collapse
+        key={`collapse-${key.toString()}`}
+        in={!open}
+        timeout="auto"
+        unmountOnExit
+      >
+        <List component="ul" key={`innerlist-${key.toString()}`} disablePadding>
           <ListItem
             button
-            key={`ico-${system[key].toString()}`}
+            key={`ico-${key.toString()}`}
             className={classes.nestedlist}
+            component="li"
           >
-            <ListItemIcon key={`icon-${system[key].toString()}`}>
+            <ListItemIcon key={`icon-${key.toString()}`} component="li">
               <StarBorder />
             </ListItemIcon>
             <ListItemText
-              key={`val-${system[key].toString()}`}
+              key={`val-${key.toString()}`}
               primary={system[key]}
+              component="li"
             />
           </ListItem>
         </List>
       </Collapse>
-      <Divider variant="inset" component="li" />
+      <Divider
+        key={`divider-${key.toString()}`}
+        variant="inset"
+        component="li"
+      />
     </React.Fragment>
   ));
 

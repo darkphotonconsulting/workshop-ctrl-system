@@ -28,6 +28,8 @@ import {
 } from "@material-ui/core/styles";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 library.add(fab, faCheckSquare, faRaspberryPi, faDigitalTachograph);
+
+
 let theme = createTheme({
   palette: {
     primary: {
