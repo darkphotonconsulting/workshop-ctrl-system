@@ -1,28 +1,51 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import clsx from "clsx";
+//import clsx from "clsx";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import CardMedia from "@material-ui/core/CardMedia";
 import CardContent from "@material-ui/core/CardContent";
 import CardActions from "@material-ui/core/CardActions";
-import Collapse from "@material-ui/core/Collapse";
 import Avatar from "@material-ui/core/Avatar";
 import IconButton from "@material-ui/core/IconButton";
-import Typography from "@material-ui/core/Typography";
+//import Typography from "@material-ui/core/Typography";
 import { red, grey } from "@material-ui/core/colors";
-import FavoriteIcon from "@material-ui/icons/Favorite";
-import ShareIcon from "@material-ui/icons/Share";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import MoreVertIcon from "@material-ui/icons/MoreVert";
 
+import ListSubheader from "@material-ui/core/ListSubheader";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
+import Collapse from "@material-ui/core/Collapse";
+import ExpandLess from "@material-ui/icons/ExpandLess";
+import ExpandMore from "@material-ui/icons/ExpandMore";
+import StarBorder from "@material-ui/icons/StarBorder";
+import Divider from "@material-ui/core/Divider";
+import MoreVertIcon from "@material-ui/icons/MoreVert";
+//import {ReactCompicture} from "../static/images/cards/system/test.jpg"
+//import {ReactComponent as PiSvg } from "../static/images/cards/system/pi.svg"
 const useStyles = makeStyles((theme) => ({
   root: {
-    maxWidth: 745,
+    //width: "100%",
+    backgroundColor: theme.palette.background.paper,
+    display: "flex",
+    flexDirection: "row",
+  },
+  card: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  list: {
+    width: "100%",
+    backgroundColor: theme.palette.background.paper,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  nestedlist: {
+    paddingLeft: theme.spacing(4),
   },
   media: {
-    // height: 1100,
-    // width: 735,
     paddingTop: "56.25%", // 16:9
   },
   expand: {
@@ -43,12 +66,57 @@ const useStyles = makeStyles((theme) => ({
 const System = ({ system }) => {
   const classes = useStyles();
   const [expanded, setExpanded] = React.useState(false);
-  console.log(Object.keys(system));
+  const [open, setOpen] = React.useState(true);
+
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
+
+  const handleClick = () => {
+    setOpen(!open);
+  };
+
+  //console.log(system.keys())
+
+  //generate accordion items for system page
+  const list_items = Object.keys(system).map((key, index) => (
+    <React.Fragment>
+      <ListItem
+        button
+        onClick={handleClick}
+        alignItems="flex-start"
+        key={`key-${system[key].toString()}`}
+      >
+        <ListItemText primary={key} />
+        {open ? <ExpandLess /> : <ExpandMore />}
+      </ListItem>
+      <Collapse in={open} timeout="auto" unmountOnExit>
+        <List
+          component="div"
+          key={`innerlist-${system[key].toString()}`}
+          disablePadding
+        >
+          <ListItem
+            button
+            key={`ico-${system[key].toString()}`}
+            className={classes.nestedlist}
+          >
+            <ListItemIcon key={`icon-${system[key].toString()}`}>
+              <StarBorder />
+            </ListItemIcon>
+            <ListItemText
+              key={`val-${system[key].toString()}`}
+              primary={system[key]}
+            />
+          </ListItem>
+        </List>
+      </Collapse>
+      <Divider variant="inset" component="li" />
+    </React.Fragment>
+  ));
+
   return (
-    <Card className={classes.root}>
+    <Card className={classes.card}>
       <CardHeader
         avatar={
           <Avatar
@@ -69,15 +137,24 @@ const System = ({ system }) => {
       />
       <CardMedia
         className={classes.media}
-        image="https://wallpapercave.com/wp/wp1864223.jpg"
+        image="https://upload.wikimedia.org/wikipedia/commons/e/ef/RaspberryPi_4_Model_B.svg"
         title="Raspberry Pi 4 birdseye view"
       />
       <CardContent>
-        <Typography variant="p" color="textSecondary">
-          revision: {system.revision}
-          SoC: {system.soc}
-          Memory: {system.ram}
-        </Typography>
+        {/* <Accordion
+        >
+          {accordion_items}
+        </Accordion> */}
+        <List
+          component="ul"
+          aria-labelledby="nested-list-subheader"
+          subheader={
+            <ListSubheader component="div">System Details</ListSubheader>
+          }
+          className={classes.list}
+        >
+          {list_items}
+        </List>
       </CardContent>
     </Card>
   );
