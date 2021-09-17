@@ -1,6 +1,8 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 //import clsx from "clsx";
+
+
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import CardMedia from "@material-ui/core/CardMedia";
@@ -9,8 +11,8 @@ import CardActions from "@material-ui/core/CardActions";
 import Avatar from "@material-ui/core/Avatar";
 import IconButton from "@material-ui/core/IconButton";
 //import Typography from "@material-ui/core/Typography";
-import { red, grey } from "@material-ui/core/colors";
-
+//import { red, grey } from "@material-ui/core/colors";
+import * as Colors from "@material-ui/core/colors/";
 import ListSubheader from "@material-ui/core/ListSubheader";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
@@ -23,7 +25,22 @@ import StarBorder from "@material-ui/icons/StarBorder";
 import Divider from "@material-ui/core/Divider";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 //import {ReactCompicture} from "../static/images/cards/system/test.jpg"
-import {ReactComponent as PiSvg } from "../static/images/cards/system/pi.svg"
+//import {ReactComponent as PiSvg } from "../static/images/cards/system/pi.svg"
+import ComputerSVG from "../static/images/cards/system/computer.svg"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { fab } from "@fortawesome/free-brands-svg-icons";
+import { faRaspberryPi } from "@fortawesome/free-brands-svg-icons";
+
+import {
+  faCheckSquare,
+  faDigitalTachograph,
+  faRandom,
+  faLaptopMedical,
+  faRobot,
+} from "@fortawesome/free-solid-svg-icons";
+library.add(fab, faCheckSquare, faRaspberryPi, faDigitalTachograph, faRandom, faLaptopMedical, faRobot);
+//import {ReactComponent as Pi} from "./pi"
 const useStyles = makeStyles((theme) => ({
   root: {
     //width: "100%",
@@ -47,6 +64,9 @@ const useStyles = makeStyles((theme) => ({
   },
   media: {
     paddingTop: "56.25%", // 16:9
+    height: 0,
+
+
   },
   expand: {
     transform: "rotate(0deg)",
@@ -59,7 +79,7 @@ const useStyles = makeStyles((theme) => ({
     transform: "rotate(180deg)",
   },
   avatar: {
-    backgroundColor: grey[500],
+    backgroundColor: Colors.grey[500],
   },
 }));
 
@@ -77,7 +97,9 @@ const System = ({ system }) => {
   };
 
   //console.log(system.keys())
-
+  Object.keys(system).map((key, index) => (
+      console.log('key: ' + key + ' index: ' + index)
+  ));
   //generate accordion items for system page
   const list_items = Object.keys(system).map((key, index) => (
     <React.Fragment key={`frag-${key.toString()}`}>
@@ -145,7 +167,8 @@ const System = ({ system }) => {
       />
       <CardMedia
         className={classes.media}
-        image="https://upload.wikimedia.org/wikipedia/commons/e/ef/RaspberryPi_4_Model_B.svg"
+        component="img"
+        src={system.logo_url}
         title="Raspberry Pi 4 birdseye view"
       />
       <CardContent>
@@ -153,6 +176,7 @@ const System = ({ system }) => {
         >
           {accordion_items}
         </Accordion> */}
+
         <List
           component="ul"
           aria-labelledby="nested-list-subheader"

@@ -1,12 +1,23 @@
 import React from "react";
+import * as Colors from "@material-ui/core/colors/";
 import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
-import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
-import SettingsSystemDaydreamIcon from "@material-ui/icons/SettingsSystemDaydream";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { fab } from "@fortawesome/free-brands-svg-icons";
+import {
+  faCheckSquare,
+  faDigitalTachograph,
+  faRandom,
+  faLaptopMedical,
+} from "@fortawesome/free-solid-svg-icons";
+import { faRaspberryPi } from "@fortawesome/free-brands-svg-icons";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+library.add(fab, faCheckSquare, faRaspberryPi, faDigitalTachograph);
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -108,11 +119,19 @@ const TopBar = () => {
           <Typography variant="h6" className={classes.title}>
             Workshop Control System
           </Typography>
-          <IconButton edge="start">
-            <SettingsSystemDaydreamIcon />
+
+          <IconButton edge="end">
+            <FontAwesomeIcon icon={faRaspberryPi} />
           </IconButton>
-          <IconButton>GPIO</IconButton>
-          <IconButton>Relay</IconButton>
+          <IconButton edge="end">
+            <FontAwesomeIcon icon={faDigitalTachograph} />
+          </IconButton>
+          <IconButton edge="end">
+            <FontAwesomeIcon icon={faRandom} />
+          </IconButton>
+          <IconButton edge="end">
+            <FontAwesomeIcon icon={faLaptopMedical} />
+          </IconButton>
         </Toolbar>
       </AppBar>
     </div>
