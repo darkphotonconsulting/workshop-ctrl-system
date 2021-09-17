@@ -43,18 +43,18 @@ To create an API driven interface interface for controlling a **master** raspber
 
 ### Dependencies
 
-- 🔴 A modern version of python, you can use minicondas base environment on the raspberry pi
+- ✅ A modern version of python (development was done on pi using 3.4.3 32-bit), you can use minicondas base environment on the raspberry pi to quickly fulfill this dependency:
   - `curl -o /tmp/installer.sh http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-armv7l.sh`
   - `sh /tmp/installer.sh`
-- 🔴 A modern version of node
+- ✅ A modern version of `nodejs` (**v16.9.1**) & `npm` (**7.21.1**)
   - `curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -`
-- 🔴 A modern version of the `yarn` package manager
+- ✅ A modern version of the `yarn` package manager
   - `curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null`
   - `echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list`
-- 🍎 With the above steps taken, you can now run `apt-get update` to ensure all of your indexes are updated
-- ℹ️ Node packages are managed by the yarn package manager, use `yarn install` in the repository root
-- ℹ️ Python packages are managed within the requirements.txt and can be installed by executing `pip install -r requirements.txt` in the repository root
-- ℹ️ For consistency, system packages installed with the `apt` package manager are stored in `apt.txt` and can be installed by executing `bash scripts/apt.sh`.
+- 🚀 With the above steps taken, you can now run `apt-get update` to ensure all of your indexes are updated
+  - ℹ️ Node packages are managed by the yarn package manager, use `yarn install` in the repository root
+  - ℹ️ Python packages are managed within the requirements.txt and can be installed by executing `pip install -r requirements.txt` in the repository root
+  - ℹ️ For consistency, system packages installed with the `apt` package manager are stored in `apt.txt` and can be installed by executing `bash scripts/apt.sh`
 
 > **Dependency Map**
 
