@@ -1,33 +1,16 @@
 import React, { Component } from "react";
-import { makeStyles, withStyles } from "@material-ui/core/styles";
-
+import { withStyles } from "@material-ui/core/styles";
+import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from "@material-ui/icons/Menu";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as Colors from "@material-ui/core/colors/";
-// import TopBar from "./components/topbar";
+import TopBar from "./components/topbar";
 import System from "./components/system";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { fab } from "@fortawesome/free-brands-svg-icons";
-import {
-  faCheckSquare,
-  faDigitalTachograph,
-  faRandom,
-  faLaptopMedical,
-} from "@fortawesome/free-solid-svg-icons";
-import { faRaspberryPi } from "@fortawesome/free-brands-svg-icons";
 import {
   createTheme,
   responsiveFontSizes, 
   ThemeProvider,
 } from "@material-ui/core/styles";
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-library.add(fab, faCheckSquare, faRaspberryPi, faDigitalTachograph);
+//import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 
 let theme = createTheme({
@@ -74,43 +57,31 @@ class App extends Component {
     return (
       <React.Fragment>
         <ThemeProvider theme={theme}>
-            <AppBar position="static">
-              <Toolbar>
-                <IconButton
-                  edge="start"
-                  className={classes.menuButton}
-                  color="inherit"
-                  aria-label="menu"
-                >
-                  <MenuIcon />
-                </IconButton>
-                <Typography variant="h6" className={classes.title}>
-                  Workshop Control System
-                </Typography>
-
-                <IconButton edge="end">
-                  <FontAwesomeIcon icon={faRaspberryPi} />
-                </IconButton>
-                <IconButton edge="end">
-                  <FontAwesomeIcon icon={faDigitalTachograph} />
-                </IconButton>
-                <IconButton edge="end">
-                  <FontAwesomeIcon icon={faRandom} />
-                </IconButton>
-                <IconButton edge="end">
-                  <FontAwesomeIcon icon={faLaptopMedical} />
-                </IconButton>
-              </Toolbar>
-            </AppBar>
+          <TopBar/>
         </ThemeProvider>
-        
+
         <ThemeProvider theme={theme}>
           <div className={classes.root}>
-          <Paper elevation={3} variant="outlined" className={classes.content}>
-         
-            <p>Center Me</p>
-            <System system={this.state.system} />
-          </Paper>
+            <Paper elevation={3} variant="outlined" className={classes.content}>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  {/* <System system={this.state.system} /> */}
+                  Testing
+                </Grid>
+                <Grid item xs={12}>
+                  {/* <System system={this.state.system} /> */}
+                  Testing
+                </Grid>
+                <Grid item xs={12}>
+                  {/* <System system={this.state.system} /> */}
+                  Testing
+                </Grid>
+                <Grid item xs={12}>
+                  <System system={this.state.system} />
+                  
+                </Grid>
+              </Grid>
+            </Paper>
           </div>
         </ThemeProvider>
         {/* <div className={classes.root}>
@@ -142,6 +113,14 @@ class App extends Component {
       .catch(console.log);
 
     fetch("http://headunit:8000/ro/relay")
+      .then((res) => res.json())
+      .then((data) => {
+        this.setState({ relay: data });
+        //console.log("relay state: " + this.state.relay);
+      })
+      .catch(console.log);
+
+    fetch("http://headunit:8000/ro/sys/info")
       .then((res) => res.json())
       .then((data) => {
         this.setState({ relay: data });
