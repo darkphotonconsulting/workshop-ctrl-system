@@ -1,0 +1,6 @@
+urllib3
+requests
+beautifulsoup4
+RPi.GPIO
+gpiozero
+pre-commit

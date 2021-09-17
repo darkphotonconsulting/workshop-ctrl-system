@@ -1,0 +1,12 @@
+git
+adduser 
+libfontconfig1
+gcc
+gcc+
+make
+nodejs
+npm
+yarn
+wiringpi
+influxdb
+influxdb-client
