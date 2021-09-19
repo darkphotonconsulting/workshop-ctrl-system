@@ -10,3 +10,5 @@ yarn
 wiringpi
 influxdb
 influxdb-client
+ruby
+ruby-dev
