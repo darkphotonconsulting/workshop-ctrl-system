@@ -20,14 +20,23 @@ To create an API driven interface interface for controlling a **master** raspber
 
 ## Prerequisites
 
-### **What You Need**
+### Microcontrollers & accessories
 
-- Power Adapter for Raspberry Pi (5V 3A)
-- Raspberry Pi 4 Model B
-- Arduino or ELEGOO Mega board
-- Display Module for Raspberry Pi (DSI)
-- 22 AWG wire (for logic connections)
-- Relay Module
+Hardware
+
+|                Item                 |                                                     Description                                                      |
+| :---------------------------------: | :------------------------------------------------------------------------------------------------------------------: |
+|          Raspberry Pi 4 B           |                             Logic controller, manages relay module, receives sensor data                             |
+|            Power Supply             |                      5v 3a power supply for raspberry pi (optional, many ways to skin this cat)                      |
+|            Arduino Mega             |                                 Sensor controller, monitors power, environment, etc                                  |
+|            Relay Module             |                   Appropriate relay module for controlling power to the desired number of outputs                    |
+|   Rasperry Pi 4 DIN Rail Adapter    |                    Provides convenient mount option & sturdy screw terminal block for connections                    |
+|      Arduino Mega DIN Adapter       |                    Provides convenient mount option & sturdy screw terminal block for connections                    |
+|     20 - 22 AWG solid core wire     | For power and logic connections between pins on Pi, Arduino and smaller devices such as sensors or inline regulators |
+| Display Module for Raspberry Pi 4 B |            Main UI interface, should be touch screen, DIS interface, and only require 5V power and ground            |
+|  Screw Terminal Adapters (female)   |                This should match the number of channels on the chosen relay + additional power conns                 |
+
+---
 
 ## Raspberry Pi Setup
 
