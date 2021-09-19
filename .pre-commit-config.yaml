@@ -1,5 +1,4 @@
 exclude: json/
-language: 
 repos:
 -   repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 2.1.5
