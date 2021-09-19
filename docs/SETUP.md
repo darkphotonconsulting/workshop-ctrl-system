@@ -11,7 +11,7 @@ To create an API driven interface interface for controlling a **master** raspber
 - fully configurable
   - easily configure GPIO ports for connection changes.
 
-## TODO  
+## TODO
 
 - [ ] Improve Docs
 - [ ] Infrastructure As Code for pi sd configuration
@@ -72,7 +72,7 @@ Hardware
 deps:
     apt:
         - git
-        - adduser 
+        - adduser
         - libfontconfig1
         - gcc
         - gcc+
