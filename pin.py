@@ -4,6 +4,7 @@ import json
 from RPi import GPIO
 from bs4 import BeautifulSoup
 import requests
+import re
 
 from urllib.parse import (
     urlparse, 
@@ -37,6 +38,26 @@ factory = Device._default_pin_factory()
 j8 = pi_info().headers['J8']
 gpiopins = j8.pins
 
+def system():  
+    data = pi_info()
+    return {
+        'manufacturer': data.manufacturer,
+        'system': "Raspberry Pi {} ({})".format(data.model, data.revision),
+        'released': data.released, 
+        'model': data.model, 
+        'revision': data.revision,
+        'soc': data.soc, 
+        'pcb_revision': data.pcb_revision,
+        'memory': data.memory,
+        'storage': data.storage, 
+        'ethernet_speed': data.eth_speed, 
+        'has_wifi': data.wifi, 
+        'has_bluetooth': data.bluetooth, 
+        'usb_ports': data.usb, 
+        'usb3_ports': data.usb3,
+        'board_headers': list( data.headers.keys() )
+    }
+
 
 def pinout(pin: int = None, label: str = None):
     base_url = "https://pinout.xyz/pinout/"
@@ -49,6 +70,7 @@ def pinout(pin: int = None, label: str = None):
         return urljoin(base_url, "pin{}_{}".format(pin, label.lower()))
     if label in powerpins.keys():
         return urljoin(base_url, powerpins[label])
+
 
 def pindata(pin: int = None, label: str = None):
     parser = ""
@@ -68,6 +90,30 @@ def pindata(pin: int = None, label: str = None):
     html = BeautifulSoup(response.text, 'html.parser')
     article = html.find('article', class_="{}".format(articleid))
     if parser == "gpiopin":
+        #print("CONT: ".format(article.contents))
+        pin_map_rgx = r".*pin\s(\d)"
+        key_map_rgx = r"(.+) .*pin\s.+"
+        phys_key, gpio_key, wiringpi_key = [
+            re.search(key_map_rgx, i.string).group(1) for i in article.contents[2].find_all('li')
+        ][0:3]
+        phys_val, gpio_val, wiringpi_val = [
+            re.search(pin_map_rgx, i.string).group(1) for i in article.contents[2].find_all('li')
+        ][0:3]
+        boardmap = dict(
+            list(
+                zip(
+                    [
+                        phys_key, gpio_key, wiringpi_key 
+                    ],
+                    [
+                        phys_val, gpio_val, wiringpi_val    
+                    ]
+                )
+            )
+        )
+        #print(boardmap)
+
+
         funcs = [i.string for i in article.contents[1].find_all('td')]
         if None in funcs:  
             funcs.remove(None)
@@ -75,7 +121,8 @@ def pindata(pin: int = None, label: str = None):
         return {
             "title" : article.contents[0].string,
             "descr": "{}".format(articleid),
-            "funcs" : funcs
+            "funcs" : funcs,
+            "boardmap": boardmap
         }
     else:
         desc = list(filter(
@@ -122,5 +169,12 @@ pinmap = dict(sorted(
     pinmap.items(),
     key=lambda x: x[0]
 ))
-print(json.dumps(pinmap))
+
+sysmap = system()
+
+pimap = {
+    'system': sysmap, 
+    'gpio': pinmap
+}
+print(json.dumps(pimap))
 #print(pinmap)
