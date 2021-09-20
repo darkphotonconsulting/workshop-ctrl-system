@@ -4,3 +4,4 @@ beautifulsoup4
 RPi.GPIO
 gpiozero
 pre-commit
+flask
