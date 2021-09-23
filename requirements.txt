@@ -5,3 +5,5 @@ RPi.GPIO
 gpiozero
 pre-commit
 flask
+psutil
+pymongo[srv]==2.4.2
