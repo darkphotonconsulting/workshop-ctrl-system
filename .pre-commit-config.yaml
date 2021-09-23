@@ -1,12 +1,13 @@
-exclude: json/
 repos:
 -   repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 2.1.5
     hooks:
     -   id: markdownlint
         stages: [commit]
+        files: ".*.md"
     -   id: shellcheck
         stages: [commit]
+        files: ".*.sh"
     -   id: shfmt
         stages: [commit]
 -   repo: https://github.com/compilerla/conventional-pre-commit
