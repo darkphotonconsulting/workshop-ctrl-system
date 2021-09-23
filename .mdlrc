@@ -1,1 +1,2 @@
 style "#{File.dirname(__FILE__)}/style.rb"
+verbose true
