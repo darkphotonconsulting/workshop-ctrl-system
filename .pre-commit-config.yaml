@@ -4,8 +4,11 @@ repos:
     rev: 2.1.5
     hooks:
     -   id: markdownlint
+        stages: [commit]
     -   id: shellcheck
+        stages: [commit]
     -   id: shfmt
+        stages: [commit]
 -   repo: https://github.com/compilerla/conventional-pre-commit
     rev: main
     hooks:
