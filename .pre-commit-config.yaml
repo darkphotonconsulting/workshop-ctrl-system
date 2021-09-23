@@ -6,3 +6,8 @@ repos:
     -   id: markdownlint
     -   id: shellcheck
     -   id: shfmt
+-   repo: https://github.com/compilerla/conventional-pre-commit
+    rev: main
+    hooks:
+    -   id: conventional-pre-commit
+        stages: [commit-msg]
