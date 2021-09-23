@@ -24,3 +24,7 @@ yarn-error.log*
 
 # visual studio code
 .vscode
+
+# ignore pyc files 
+__pycache__
+*.pyc
