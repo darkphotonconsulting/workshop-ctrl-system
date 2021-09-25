@@ -74,6 +74,14 @@ mongo_args.add_argument('--mongodb-port',
     help="MongoDB Port"
 )
 
+
+mongo_crud_args.add_argument('--mongodb-db',
+    action='store',
+    required=False,
+    default=False,
+    help="Validate a Mongo DB exits"
+)
+
 mongo_crud_args.add_argument('--mongodb-dbs',
     action='store_true',
     required=False,
