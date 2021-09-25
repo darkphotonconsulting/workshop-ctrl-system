@@ -2,10 +2,12 @@
 
 ## Overview
 
-> HeadUnit
+> What is the headunit project?
 
-To create an API driven interface for controlling a **master** raspberry pi which is the entrypoint to a smart workshop.
+As a power DIY dude, the workshop build project should take electronic automation into account for powered devices, & components which will run. This may include the `headunit-z-table`, any power tools, 3d printers, CNC mills, shop-vacs, or otherwise.
 
+- Use common microntrollers to maintain, monitor and manage line voltage to shop components. 
+- Use sensors, AI/ML and other data to maintain safe operation of all shop components.
 - Devices in the shop requiring AC electric power sources are connected via AC contactor and controllable AC relays
 - provides metrics & performance analytics on power consumption
 - monitors environment via arduino connection (temp, water detection, air quality)
@@ -13,11 +15,50 @@ To create an API driven interface for controlling a **master** raspberry pi whic
   - GPIO ports configurable from interface
     - support various pi bus protocols (i2c, spi, pwm, etc)
 
+> What API interface(s) should be available?
+
+- control a raspberry pi, and it's GPIOS
+  - relay control should be a subset of this as it is cutting a line HIGH/LOW fundamentally
+- control connected relay module
+
+- metrics/state api
+  - read data from connected Arduino Mega 
+    - (USB serial or SDA data for example)
+  - fetch, insert (backend), and read system metrics
+  - fetch, insert and read gpio states
+  - state tables
+
+> Head Unit Backend
+>
+> [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
+
+The backend is MongoDB
+
+The backend services are python based and consists of
+
+- metrics-server.py
+  - provide metrics on connected devices/components
+- gpio-server.py
+  - control gpios, report state
+- mongo-proxy.py  
+  - crud for backend databases and collections
+
+> Head Unit Frontend
+>
+> [![made-with-javascript](https://img.shields.io/badge/Made%20with-JavaScript-1f425f.svg)](https://www.javascript.com)
+
+- headunit
+  - Material React App
+    - dashboard
+      - display metrics
+    - control GPIOs/relay
+    - define metric schemas on backend
+
 ## TODO
 
 - [ ] Improve Docs
 - [x] ~~Infrastructure As Code for pi sd configuration~~
-- [x] ~~Decide on backend design (influx, mongo, flux, telegraf, etc)~~ 
+- [x] ~~Decide on backend design (influx, mongo, flux, telegraf, etc)~~
   - :📓 options are limited due to current supported raspian OS being 32 bit but raspberry pi being a 64 bit arm cpu. mongo, influx, and most k/v stores require a 64 bit OS to operate.
 - [ ] ~~Create backend schema(s) and relational logic~~
   - [ ] Not complete but, WIP (work in progress)
@@ -45,4 +86,3 @@ To create an API driven interface for controlling a **master** raspberry pi whic
 - ✅ read README and create a `config` file appropriately for your environment
 - ✅ run build.sh -c config
   - if running in docker run build-docker.sh -c config, but that's going to break =)
-
