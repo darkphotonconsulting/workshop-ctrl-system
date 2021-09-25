@@ -16,6 +16,7 @@
 
 """
 import os
+import platform
 import sys
 import json
 from copy import copy
@@ -290,21 +291,22 @@ def main(args):
     Args:
         args ([ArgumentParser]): pass in ArgumentParser.parse_args()
     """
-    #print(type(args))
     print(args) if args.debug else None
 
     schema_template = get_schema_template(args.schema_template)
     schema = compile_schema_template(schema_template)
-    # handle print requests
-    if args.print_info:
+    #only get pi_info if we need it.
+    if args.write_info or args.print_info:
         pi_info = get_pi_info()
+    # print data
+    if args.print_info:
         if args.schema_template == 'all':
             pretty_print(pi_info.to_json())
         else:
             pretty_print(pi_info.__getattribute__(args.schema_template))
     if args.print_schema:
         pretty_print(schema)
-    # handle file writes
+    # write files
     if args.write_schema:
         print(get_json(schema)) if args.debug else None
         write_schema(args, get_json(schema))
@@ -319,7 +321,11 @@ def main(args):
 
 
 
-
+# run as a script called from the shell
 if __name__ == '__main__':
-    args = argparser.parse_args()
-    main(args)
+    if platform.uname().node == 'raspberrypi' and platform.machine() in ['armv7l']:
+        args = argparser.parse_args()
+        main(args)
+    else:
+        print("Please run this script on a supported system!")
+        exit()
