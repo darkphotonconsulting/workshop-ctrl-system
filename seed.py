@@ -77,7 +77,7 @@ mongo_args.add_argument('--mongodb-port',
 mongo_crud_args.add_argument('--mongodb-db',
     action='store',
     required=False,
-    default=False,
+    default=None,
     help="Validate a Mongo DB exits"
 )
 
@@ -99,22 +99,28 @@ general_args.add_argument('--collection-name',
     action='store',
     type=str,
     required=False,
-    default='all',
+    default=None,
     choices=SCHEMA_CHOICES,
     help=
     f"Name of the collection out of {SCHEMA_CHOICES}, determines which schema, file, and/or database collection to work with"
 )
 
-template_args.add_argument(
-    '--schema-template',
-    action='store',
-    type=str,
+general_args.add_argument('--collection-names',
+    action='store_true',
     required=False,
-    default='all',
-    choices=SCHEMA_CHOICES,
     help=
-    "Name of the template to work with, [also determines which filename/database collection to write to]"
+    f"Print names of the supported collections"
 )
+
+# template_args.add_argument('--schema-template',
+#     action='store',
+#     type=str,
+#     required=False,
+#     default='all',
+#     choices=SCHEMA_CHOICES,
+#     help=
+#     "Name of the template to work with, [also determines which filename/database collection to write to]"
+# )
 
 info_args.add_argument('--print-info',
     action='store_true',
@@ -228,7 +234,7 @@ def mongo_databases(client: MongoClient) -> list:
     """
     return client.database_names()
 
-def database_created(client: MongoClient, db: str) -> bool:
+def mongo_database_created(client: MongoClient, db: str) -> bool:
     """Verify if a database has already been created
 
     Args:
@@ -324,6 +330,18 @@ def main(args):
             args,
             get_json(pi_info.__dict__) if args.collection_name == 'all' else get_json(pi_info.__dict__[args.collection_name])
         )
+
+    if args.mongodb_dbs or args.mongodb_db is not None:
+        mongo = mongo_connection(args)
+        
+    if args.mongodb_dbs:
+        databases = mongo_databases(mongo)
+        print(f"{databases}")
+
+    if args.mongodb_db is not None:
+        print("True") if mongo_database_created(mongo, args.mongodb_db) else print("False")
+
+        
 
 
 
