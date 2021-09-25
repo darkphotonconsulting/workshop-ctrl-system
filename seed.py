@@ -95,8 +95,7 @@ general_args.add_argument('--data-out-dir',
     default='data',
     help="Data out directory"
 )
-general_args.add_argument(
-    '--collection-name',
+general_args.add_argument('--collection-name',
     action='store',
     type=str,
     required=False,
@@ -250,7 +249,7 @@ def write_schema(args: Namespace, data) -> None:
         data ([dict]): compiled schema object
     """
     #print(type(data))
-    file_name = FILE_MAPPING[args.schema_template]
+    file_name = FILE_MAPPING[args.collection_name]
     with open(f"{args.data_out_dir}/schema-{file_name}.{FILE_MAPPING['extension']}", 'w') as file:
         print(
             f"writing compiled schema: {args.data_out_dir}/schema-{file_name}.{FILE_MAPPING['extension']}"
@@ -266,7 +265,7 @@ def write_info(args: Namespace, data):
         data ([dict]): dict format of PiInfo object
     """
     #print(type(data))
-    file_name = FILE_MAPPING[args.schema_template]
+    file_name = FILE_MAPPING[args.collection_name]
     with open(f"{args.data_out_dir}/{file_name}.{FILE_MAPPING['extension']}", 'w') as file:
         print(
             f"writing pi info: {args.data_out_dir}/{file_name}.{FILE_MAPPING['extension']}"
@@ -300,17 +299,17 @@ def main(args):
     """
     print(args) if args.debug else None
 
-    schema_template = get_schema_template(args.schema_template)
+    schema_template = get_schema_template(args.collection_name)
     schema = compile_schema_template(schema_template)
     #only get pi_info if we need it.
     if args.write_info or args.print_info:
         pi_info = get_pi_info()
     # print data
     if args.print_info:
-        if args.schema_template == 'all':
+        if args.collection_name == 'all':
             pretty_print(pi_info.to_json())
         else:
-            pretty_print(pi_info.__getattribute__(args.schema_template))
+            pretty_print(pi_info.__getattribute__(args.collection_name))
     if args.print_schema:
         pretty_print(schema)
     # write files
@@ -319,11 +318,11 @@ def main(args):
         write_schema(args, get_json(schema))
     if args.write_info:
         print(
-            get_json(pi_info.__dict__) if args.schema_template ==
-            'all' else get_json(pi_info.__dict__[args.schema_template])) if args.debug else None
+            get_json(pi_info.__dict__) if args.collection_name ==
+            'all' else get_json(pi_info.__dict__[args.collection_name])) if args.debug else None
         write_info(
             args,
-            get_json(pi_info.__dict__) if args.schema_template == 'all' else get_json(pi_info.__dict__[args.schema_template])
+            get_json(pi_info.__dict__) if args.collection_name == 'all' else get_json(pi_info.__dict__[args.collection_name])
         )
 
 
