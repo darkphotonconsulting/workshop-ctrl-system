@@ -52,11 +52,11 @@ argparser = ArgumentParser(
 )
 
 # argparser groups
-general_args = argparser.add_argument_group('general')
-mongo_args = argparser.add_argument_group('mongoDB Connection')
-mongo_crud_args = argparser.add_argument_group('mongoDB CRUD')
-template_args = argparser.add_argument_group('Schemas')
-info_args = argparser.add_argument_group('System Info')
+general_args = argparser.add_argument_group('general args')
+mongo_args = argparser.add_argument_group('mongoDB connections')
+mongo_crud_args = argparser.add_argument_group('mongoDB crud')
+template_args = argparser.add_argument_group('schemas')
+info_args = argparser.add_argument_group('system')
 
 # args
 mongo_args.add_argument('--mongodb-host',
@@ -111,16 +111,6 @@ general_args.add_argument('--collection-names',
     help=
     f"Print names of the supported collections"
 )
-
-# template_args.add_argument('--schema-template',
-#     action='store',
-#     type=str,
-#     required=False,
-#     default='all',
-#     choices=SCHEMA_CHOICES,
-#     help=
-#     "Name of the template to work with, [also determines which filename/database collection to write to]"
-# )
 
 info_args.add_argument('--print-info',
     action='store_true',
@@ -313,7 +303,7 @@ def main(args):
     # print data
     if args.print_info:
         if args.collection_name == 'all':
-            pretty_print(pi_info.to_json())
+            pretty_print(pi_info.__dict__)
         else:
             pretty_print(pi_info.__getattribute__(args.collection_name))
     if args.print_schema:
