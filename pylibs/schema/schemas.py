@@ -1,14 +1,9 @@
-"""[summary]
-
-Returns:
-    [type]: [description]
-"""
 import json
 import bson
 from copy import copy
 
 class DefaultSchemas(object):
-    """[summary]
+    """Default Mongo DB static system schemas
 
     Args:
         object ([type]): [description]
@@ -47,13 +42,14 @@ class DefaultSchemas(object):
     }
 
 class SchemaFactory(object):
-    """[summary]
+    """Generic schema logic. 
+    Compiles a mongodb compliant schema validator reference
 
     Args:
-        object ([type]): [description]
+        None
 
     Returns:
-        [type]: [description]
+        SchemaFactory
     """
 
     nested = False
@@ -69,12 +65,28 @@ class SchemaFactory(object):
 
 
     def generate_schema(self, schema_obj):
-        #print(f"schema is: {schema_obj}")
+        """[summary]
+
+        Args:
+            schema_obj ([dict]): [a python representation of mongodb schema]
+
+        Returns:
+            [str]: [JSON string representing mongodb schema validator]
+        """
         validator = copy(self.validator)
         return self.__class__._recurse_schema_keys(validator, schema_obj)
 
     @classmethod
     def _bson_typemap(cls, key, value):
+        """Maps python types to bson types where applicable
+
+        Args:
+            key ([Any]): [a key in a dict]
+            value ([Any]): [a value in a dict]
+
+        Returns:
+            [dict]: dictionary with bsonType for property (key)
+        """
         if value is str or isinstance(value, str):
             return {'bsonType': 'string'}
         elif value is list or isinstance(value, list):
@@ -91,17 +103,16 @@ class SchemaFactory(object):
 
     @classmethod
     def _map_nested_object(cls,label, o):
+        """[unused]
+
+        Args:
+            label ([type]): [description]
+            o ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
         keys = list(o.keys())
-        #print(f"mapping obj keys: {keys}")
-        # obj = {
-        #     label: {
-        #         "bsonType": "object",
-        #         "properties": {
-        #             key: cls._bson_typemap(key, o[key])
-        #         }
-        #     }
-        #     for key in keys
-        # }
         obj = {
             label: {
                 "bsonType": "object",
@@ -111,21 +122,45 @@ class SchemaFactory(object):
                 "required": [key for key in keys]
             }
         }
-        print(f"created object: {obj}")
         return obj
 
+
     @classmethod
-    def _recurse_schema_keys(cls, validator, schema_obj, levels=[]):
+    def _recurse_schema_keys(cls, validator, schema_obj):
+        """Recurse a python schema template object dictionary and output a mongodb validator template
+
+        Args:
+            validator ([type]): [description]
+            schema_obj ([type]): [description]
+
+        Returns:
+            [str]: [the schema]
+        """
+        props = {}
+        for k, v in schema_obj.items():
+            if v in [str, int, float, list]:
+                props[k] = cls._bson_typemap(k, v)
+            elif v in [dict] or isinstance(v, dict):
+                props[k] = {}
+                props[k]["bsonType"] = "object"
+                props[k]["properties"] = cls._recurse_schema_keys(validator, v)
+        return props
+
+    @classmethod
+    def _recurse_schema_keys_nope(cls, validator, schema_obj, levels=[]):
+        """[unused]
+
+        Args:
+            validator ([type]): [description]
+            schema_obj ([type]): [description]
+            levels (list, optional): [description]. Defaults to [].
+
+        Returns:
+            [type]: [description]
+        """
         required = []
-        #print(f"last seen key: {cls.last_seen}")
-        #print(f"nest state {cls.nested}")
         if isinstance(schema_obj, dict):
             for key, value in schema_obj.items():
-                #print(f"current key: {key}")
-                #if value is not isinstance(value, dict):
-                #    cls.nested = False
-                if len(required) > 0:
-                    print(f"last seen key {required[-1]}")
                 required.append(key)
                 #print(f"{key} {value}")
                 validator["$jsonSchema"]["required"] = required
@@ -133,12 +168,8 @@ class SchemaFactory(object):
                 validator["$jsonSchema"]["properties"][key] = prop
                 #cls.last_seen = key
                 if isinstance(value, dict):
-                    if len(required) > 0:
-                        print(f"last seen key {required[-1]}")
                     required.append(key)
                     levels.append(key)
-                    print(f"key {key} is a dictionary")
-                    print(f"levels contains {levels}")
                     #cls.nested = True
                     #create nested key and recurse into key level
                     #print(f"adding nested object {key} to properties")
@@ -148,14 +179,6 @@ class SchemaFactory(object):
                     }
                     # validator["$jsonSchema"]["properties"][key][
                     #     'properties'] = cls._map_nested_object(key, value)
-                    print(type(cls._map_nested_object(key, value)))
                     #cls._recurse_schema_keys(validator, value)
                     vals = cls._recurse_schema_keys(validator, value)
-                    print(f"recursion returns: {vals}")
         return validator
-
-
-
-factory = SchemaFactory()
-gpioschema = DefaultSchemas().gpios
-print(json.dumps(factory.generate_schema(gpioschema)))
