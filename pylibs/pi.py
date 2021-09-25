@@ -13,6 +13,12 @@ from urllib.parse import (
 
 
 class PiInfoEncoder(JSONEncoder):
+    """JSON Encoder class for PiInfo objects
+
+    @Inherits:
+        JSONEncoder : This class inherits from JSONEncoder, overriding the default method
+        - allows a PiInfo object to be JSON encoded
+    """
     def default(self, object, klass):
         if isinstance(object, klass):
             return object.__dict__
@@ -22,16 +28,21 @@ class PiInfoEncoder(JSONEncoder):
                 object
             )
 class PiInfo(object):
+    """Data container class for Raspberry Pi static system information
+
+    @Args:
+        None
+
+    @Returns:
+        A PiInfo object
+    """
+
     data = pi_info()
 
 
-    def __json__(self):
-        return json.dumps(self.__dict__)
-        
-    def to_json(self):
-        return self.__json__()
-    ##GPIO.setmode(GPIO.BCM)
+
     def __init__(self):
+        """initializes a PiInfo object for the running system (supports Raspberry 4 B+)"""
         data = self.__class__.data
         factory = Device._default_pin_factory()
         self.GPIO_FUNCTIONS = {
@@ -85,7 +96,6 @@ class PiInfo(object):
         pinmap = {
             str(pin.number): {
                 'label': pin.function,
-                # 'function': factory.pin_class(factory, pin.number).function,
                 'header_row': pin.row,
                 'header_col': pin.col,
                 'info_url': self.__class__.pinout(pin.number, pin.function),
@@ -97,9 +107,25 @@ class PiInfo(object):
         self.gpios = [i for i in self.pinmap.values()]
         self.pimap = {'system': self.system, 'gpio': self.gpios}
 
+    def to_json(self):
+        """Standard to_json method"""
+        return json.dumps(self.__dict__,
+                          cls=PiInfoEncoder,
+                          indent=2,
+                          sort_keys=True)
+
 
     @classmethod
     def pinout(cls,pin: int = None, label: str = None):
+        """Derives pinout URL based on BCM board number and pin label
+
+        Args:
+            pin (int, optional): Pin number
+            label (str, optional): Pin label
+
+        Returns:
+            str - pinout.xyz URL for given pin
+        """
         base_url = "https://pinout.xyz/pinout/"
         powerpins = {
             'GND': 'ground',
@@ -112,7 +138,40 @@ class PiInfo(object):
             return urljoin(base_url, powerpins[label])
 
     @classmethod
-    def pindata(cls, pin: int = None, label: str = None):
+    def pindata(cls, pin: int = None, label: str = None) -> dict:
+        """Scrapes pinout.xyz to enrich PiInfo object with mappings of additional data
+        not found from board itself for each pin
+        - GPIO functions (PWM, I2C, etc)
+        - variant board addresses (BCM, Wiring Pi, Board)
+        - description
+        - title (as seen on pinout.xyz)
+
+        Output Example
+
+        {
+            "boardmap": {
+                "GPIO/BCM": "str",
+                "Physical/Board: "str",
+                "Wiring Pi": "str"
+            },
+            "descr": "str",
+            "funcs : [
+                "str",
+                "str",
+                "str",
+                ...
+            ],
+            "title : "str" 
+        }
+
+        Args:
+            pin (int, optional):  The pin number (Board)
+            label (str, optional): the pin label
+
+        Returns:
+            dict: [description]
+        """
+
         parser = ""
         powerpins = {
             'GND': 'page_ground',
@@ -173,10 +232,6 @@ class PiInfo(object):
             return {
                 "title": "{}".format(article.contents[0].string),
                 "descr": " ".join([i.string.replace("\n", " ") for i in desc]),
-                "funcs": "this is a {} pin!!!".format(parser)
+                "funcs": ["{}".format(parser)],
+                "boardmap": {}
             }
-
-
-
-
-#print(pinmap)
