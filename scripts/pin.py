@@ -86,7 +86,7 @@ def pindata(pin: int = None, label: str = None):
         return {
             "title": "{}".format(article.contents[0].string),
             "descr": " ".join([i.string.replace("\n", " ") for i in desc]),
-            "funcs": "this is a {} pin!!!".format(parser)
+            "funcs": ["{}".format(parser)]
         }
 
     
