@@ -74,7 +74,6 @@ mongo_args.add_argument('--mongodb-port',
     help="MongoDB Port"
 )
 
-
 mongo_crud_args.add_argument('--mongodb-db',
     action='store',
     required=False,
