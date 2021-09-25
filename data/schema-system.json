@@ -1,0 +1,38 @@
+{
+  "board_headers": {
+    "bsonType": "array"
+  },
+  "ethernet_speed": {
+    "bsonType": "int"
+  },
+  "manufacturer": {
+    "bsonType": "string"
+  },
+  "memory": {
+    "bsonType": "int"
+  },
+  "model": {
+    "bsonType": "string"
+  },
+  "pcb_revision": {
+    "bsonType": "string"
+  },
+  "revision": {
+    "bsonType": "string"
+  },
+  "soc": {
+    "bsonType": "string"
+  },
+  "storage": {
+    "bsonType": "string"
+  },
+  "system": {
+    "bsonType": "string"
+  },
+  "usb3_ports": {
+    "bsonType": "int"
+  },
+  "usb_ports": {
+    "bsonType": "int"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "board_headers": [
+    "J8",
+    "POE"
+  ],
+  "ethernet_speed": 1000,
+  "has_bluetooth": true,
+  "has_wifi": true,
+  "manufacturer": "Sony",
+  "memory": 8192,
+  "model": "4B",
+  "pcb_revision": "1.4",
+  "released": "2020Q2",
+  "revision": "d03114",
+  "soc": "BCM2711",
+  "storage": "MicroSD",
+  "system": "Raspberry Pi 4B (d03114)",
+  "usb3_ports": 2,
+  "usb_ports": 4
+}

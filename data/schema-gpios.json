@@ -1,0 +1,39 @@
+{
+  "data": {
+    "bsonType": "object",
+    "properties": {
+      "boardmap": {
+        "bsonType": "object",
+        "properties": {
+          "GPIO/BCM": {
+            "bsonType": "string"
+          },
+          "Physical/Board": {
+            "bsonType": "string"
+          },
+          "Wiring Pi": {
+            "bsonType": "string"
+          }
+        }
+      },
+      "descr": {
+        "bsonType": "string"
+      },
+      "funcs": {
+        "bsonType": "array"
+      },
+      "header_col": {
+        "bsonType": "int"
+      },
+      "header_row": {
+        "bsonType": "int"
+      },
+      "label": {
+        "bsonType": "string"
+      },
+      "title": {
+        "bsonType": "string"
+      }
+    }
+  }
+}
