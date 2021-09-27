@@ -1,6 +1,16 @@
 import json
 import bson
 from copy import copy
+from pymongo.database import Database
+from mongoengine import (
+    Document,
+    StringField,
+    EmbeddedDocumentField,
+    IntField,
+    DateTimeField,
+    ListField,
+    BooleanField
+)
 
 class DefaultSchemas(object):
     """Default Mongo DB static system schemas
@@ -40,6 +50,16 @@ class DefaultSchemas(object):
         "label": str
         }
     }
+
+    relays = {
+        "normally_open": bool,
+        "relay_channel": int,
+        "board_port": int,
+        "gpio_port": int,
+        "description": str,
+        "state": bool
+    }
+
 
 class SchemaFactory(object):
     """Generic schema logic. 
@@ -137,6 +157,7 @@ class SchemaFactory(object):
             [str]: [the schema]
         """
         props = {}
+        #print(validator)
         for k, v in schema_obj.items():
             if v in [str, int, float, list]:
                 props[k] = cls._bson_typemap(k, v)
@@ -144,7 +165,10 @@ class SchemaFactory(object):
                 props[k] = {}
                 props[k]["bsonType"] = "object"
                 props[k]["properties"] = cls._recurse_schema_keys(validator, v)
+        #validator["$jsonSchema"]["properties"] = props
+
         return props
+        #eturn validator
 
     @classmethod
     def _recurse_schema_keys_nope(cls, validator, schema_obj, levels=[]):
