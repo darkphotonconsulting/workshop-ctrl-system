@@ -86,7 +86,7 @@ def api_system():
     #print()
     args = request.args
     results = []
-    
+
     if request.json is not None and len(args.keys()) == 0:
         print("json input in request data, using as search filder")
         search_data = request.json
@@ -99,6 +99,16 @@ def api_system():
             print('results done..')
         finally:
             return jsonify(results)
+    elif request.json is None and len(args.keys()) == 0:
+        print("should render a template here..")
+        try:
+            for system in System.objects():
+                print(system.model)
+                results.append(json.loads(system.to_json()))
+        except RuntimeError as runtime_error:
+            print('results done..')
+        finally:
+            return render_template('system.html', system=results[0])
     else:
         if 'json_output' in args and bool(args['json_output']):
             print('json output set via args')
@@ -124,13 +134,13 @@ def api_system():
 
 @app.route('/api/gpios', methods=['POST','GET','DELETE'])
 def api_gpio():
+    args = request.args
     results = []
-    if request.json is not None:
+    print(args)
+    #sending json data - receiving json outputs
+    if request.json is not None and len(args.keys()) == 0:
         search_data = request.json
         print(f"search_data: {search_data}")
-        args = request.args
-        start = int(args.get('begin', 0))
-        stop = int(args.get('end', -1))
         try:
             for pin in Pin.objects(**search_data):
                 print(pin.label)
@@ -141,6 +151,17 @@ def api_gpio():
         except RuntimeError as runtime_error:
             print('results  done..')
         finally:
+            return jsonify(results)
+    elif request.json is None and 'json_output' in args and bool(args['json_output']):
+        try:
+            for pin in Pin.objects():
+                print(pin.label)
+                print(pin.data.descr)
+                results.append(json.loads(pin.to_json()))
+        except RuntimeError as runtime_error:
+            print('results  done..')
+        finally:
+            #return jsonify(results)
             return jsonify(results)
     else:
         try:
@@ -169,8 +190,19 @@ def api_relays():
         print('results done..')
     if request.method == 'GET':
         print('processed get')
-        if form.validate_on_submit():
-            return render_template("relay.html", form=form, results=results)
+        if json_data is None and 'json_output' in args and bool(args['json_output']):
+            print('json_outputs...')
+            print(json_data)
+            print(args)
+            try:
+                for relay in Relay.objects:
+                    results.append(json.loads(relay.to_json()))
+            except RuntimeError as runtime_error:
+                return jsonify(results)
+        else:
+            print('form outputs...')
+            if form.validate_on_submit():
+                return render_template("relay.html", form=form, results=results)
     elif request.method == 'DELETE':
         print('processed delete')
         try:
