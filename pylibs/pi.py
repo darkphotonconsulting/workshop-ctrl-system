@@ -165,11 +165,11 @@ class PiInfo(object):
         }
 
         Args:
-            pin (int, optional):  The pin number (Board)
-            label (str, optional): the pin label
+            pin (int, optional): [description]. Defaults to None.
+            label (str, optional): [description]. Defaults to None.
 
         Returns:
-            dict: [description]
+            dict: rich  pin data dictionary
         """
 
         parser = ""
@@ -190,11 +190,15 @@ class PiInfo(object):
         article = html.find('article', class_="{}".format(articleid))
         if parser == "gpiopin":
             #print("CONT: ".format(article.contents))
-            pin_map_rgx = r".*pin\s(\d)"
+            pin_map_rgx = r".*pin\s(\d+)"
             key_map_rgx = r"(.+) .*pin\s.+"
             phys_key, gpio_key, wiringpi_key = [
                 re.search(key_map_rgx, i.string).group(1) for i in article.contents[2].find_all('li')
             ][0:3]
+            # fix key names to not have spaes or odd characters
+            phys_key = re.sub(r'[/\s]', '_', phys_key).lower()
+            gpio_key = re.sub(r'[/\s]', '_', gpio_key).lower()
+            wiringpi_key = re.sub(r'[/\s]', '_', wiringpi_key).lower()
             phys_val, gpio_val, wiringpi_val = [
                 re.search(pin_map_rgx, i.string).group(1) for i in article.contents[2].find_all('li')
             ][0:3]
@@ -210,28 +214,43 @@ class PiInfo(object):
                     )
                 )
             )
-            #print(boardmap)
+            #add a better description...
+            desc = list(
+                filter(lambda x: type(x.string) is not type(None),
+                       list(article.find_all('p'))))
 
+            if len(desc) > 0:
+                description_text = " ".join([
+                    i.string.replace("\n", " ").replace("\"", "") for i in desc
+                ])
+            else:
+                description_text = "General Purpose (IO)"
 
             funcs = [i.string for i in article.contents[1].find_all('td')]
             if None in funcs:
                 funcs.remove(None)
-            #print(funcs)
+
             return {
-                "title" : article.contents[0].string,
-                "descr": "{}".format(articleid),
-                "funcs" : funcs,
+                "title": article.contents[0].string,
+                "descr": description_text,
+                "funcs": funcs,
                 "boardmap": boardmap
             }
         else:
+            print(f"processing {label} as a power pin")
             desc = list(filter(
                 lambda x: type(x.string) is not type(None),
                 list(article.find_all('p'))
             ))
+            print(f"got description: {desc}")
 
             return {
                 "title": "{}".format(article.contents[0].string),
                 "descr": " ".join([i.string.replace("\n", " ") for i in desc]),
                 "funcs": ["{}".format(parser)],
-                "boardmap": {}
+                "boardmap": {
+                    "physical_board": -1,
+                    "gpio_bcm" : -1,
+                    "wiring_pi": -1
+                }
             }
