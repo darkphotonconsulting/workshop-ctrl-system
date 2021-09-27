@@ -1,0 +1,67 @@
+[
+  {
+    "board_port": 11,
+    "description": "relay channel 1: test-pump",
+    "gpio_port": 17,
+    "normally_open": true,
+    "relay_channel": 1,
+    "state": true
+  },
+  {
+    "board_port": 13,
+    "description": "relay channel 2:",
+    "gpio_port": 27,
+    "normally_open": true,
+    "relay_channel": 2,
+    "state": false
+  },
+  {
+    "board_port": 15,
+    "description": "relay channel 3:",
+    "gpio_port": 22,
+    "normally_open": true,
+    "relay_channel": 3,
+    "state": false
+  },
+  {
+    "board_port": 29,
+    "description": "relay channel 4: ",
+    "gpio_port": 5,
+    "normally_open": true,
+    "pcm_type": false,
+    "relay_channel": 4,
+    "state": false
+  },
+  {
+    "board_port": 31,
+    "description": "relay channel 5: ",
+    "gpio_port": 6,
+    "normally_open": true,
+    "relay_channel": 5,
+    "state": false
+  },
+  {
+    "board_port": 33,
+    "description": "relay channel 6: ",
+    "gpio_port": 13,
+    "normally_open": true,
+    "relay_channel": 6,
+    "state": false
+  },
+  {
+    "board_port": 37,
+    "description": "relay channel 7: ",
+    "gpio_port": 26,
+    "normally_open": true,
+    "relay_channel": 7,
+    "state": false
+  },
+  {
+    "board_port": 16,
+    "description": "relay channel 8: ",
+    "gpio_port": 23,
+    "normally_open": true,
+    "relay_channel": 8,
+    "state": false
+  }
+]
