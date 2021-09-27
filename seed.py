@@ -23,17 +23,38 @@ from copy import copy
 #import argparse
 from argparse import ArgumentError, ArgumentParser, Namespace
 from pymongo import MongoClient
+from pymongo.database import Database
+from pymongo.collection import Collection
 from pymongo.errors import CollectionInvalid
+
+from collections import OrderedDict
 from config.settings import Config
 from pylibs.pi import PiInfo, PiInfoEncoder
+from pylibs.relay import RelayInfo
 from pylibs.schema.schemas import DefaultSchemas, SchemaFactory
 
 # mappings for writing files
+
+DATABASE_COLLECTION_MAPPING = {
+    'static': {
+        'system': 'static-system',
+        'gpios': 'static-gpios',
+        'relays': 'static-relays',
+        'all': [
+            'static-system',
+            'static-gpios'
+        ]
+    },
+    'dynamic': {
+
+    }
+}
 FILE_MAPPING = {
     'extension': 'json',
     'all': 'raspberrypi',
     'system': 'system',
-    'gpios': 'gpios'
+    'gpios': 'gpios',
+    'relays': 'user-relays'
 }
 
 # applicable schema choices
@@ -81,11 +102,25 @@ mongo_crud_args.add_argument('--mongodb-db',
     help="Validate a Mongo DB exits"
 )
 
+mongo_crud_args.add_argument('--mongodb-create-static-db',
+    action='store_true',
+    required=False,
+    help="Create a Mongo database with attached validator schema for --collection-name"
+)
+
+
 mongo_crud_args.add_argument('--mongodb-dbs',
     action='store_true',
     required=False,
     default=False,
     help="List Mongo DB Databases"
+)
+
+mongo_crud_args.add_argument('--mongodb-drop',
+    action='store_true',
+    required=False,
+    default=False,
+    help="Drop databases and collections that exist before recreating them (development feature)"
 )
 
 general_args.add_argument('--data-out-dir',
@@ -95,6 +130,7 @@ general_args.add_argument('--data-out-dir',
     default='data',
     help="Data out directory"
 )
+
 general_args.add_argument('--collection-name',
     action='store',
     type=str,
@@ -118,12 +154,14 @@ info_args.add_argument('--print-info',
     default=False,
     help="Print the raspberry pi info object as JSON"
 )
+
 template_args.add_argument('--print-schema',
     action='store_true',
     required=False,
     default=False,
     help="print the compiled schema object as JSON"
 )
+
 info_args.add_argument('--write-info',
     action='store_true',
     required=False,
@@ -131,6 +169,7 @@ info_args.add_argument('--write-info',
     help=
     "Write raspberry pi info object as JSON to file in [--data_out_dir], defaults to './data'"
 )
+
 template_args.add_argument('--write-schema',
     action='store_true',
     required=False,
@@ -149,7 +188,6 @@ argparser.add_argument('--debug',
     required=False,
     default=False
 )
-
 
 ## schema functions
 
@@ -173,7 +211,6 @@ def get_schema_template(schema_template_name: str = None) -> dict:
         }
     else:
         # TODO: find a better way to do this, setter and getter functions?
-        #
         schema = DefaultSchemas().__getattribute__(schema_template_name)
     return schema
 
@@ -188,9 +225,10 @@ def compile_schema_template(schema_template: dict = None) -> dict:
         dict: compiled validator schema python object
     """
     factory = SchemaFactory()
-    #validator = copy(factory.validator)
+    validator = copy(factory.validator)
     schema = factory.generate_schema(schema_template)
-    return schema
+    validator['$jsonSchema']['properties'] = schema
+    return validator
 
 # pi info functions
 def get_pi_info() -> PiInfo:
@@ -205,11 +243,15 @@ def get_pi_info() -> PiInfo:
 
 # mongo db functions
 def mongo_connection(args: Namespace) -> MongoClient:
-    """Get a connection to mongo db, connections details are configured in the Config class of the config.settings module but can be overriden with the CLI parameters
+    """
+
+    Args:
+        args (Namespace): 
 
     Returns:
-        MongoClient: a pymongo client object
+        MongoClient: a MongoClient object
     """
+
     return MongoClient(
         f"mongodb://{args.mongodb_host}:{args.mongodb_port}")
 
@@ -217,7 +259,7 @@ def mongo_databases(client: MongoClient) -> list:
     """List the databases in mongodb
 
     Args:
-        client ([MongoClient]): a pymongo client object
+        client (MongoClient): a pymongo client object
 
     Returns:
         list: list of databases (empty if none, which probably won't happen)
@@ -228,13 +270,111 @@ def mongo_database_created(client: MongoClient, db: str) -> bool:
     """Verify if a database has already been created
 
     Args:
-        client ([MongoClient]): a pymongo client object
-        db ([str]): a database name to check exists
+        client (MongoClient): a pymongo client object
+        db (str): a database name to check exists
 
     Returns:
         bool: returns True if database exists, False if not
     """
     return True if db in mongo_databases(client) else False
+
+def _create_collection(args: Namespace, client: MongoClient, db_name: str, collection_name: str) -> Collection:
+    """Create a mongodb collection, attaches validator schema, uses connection names defined in DATABASE_COLLECTION_MAPPING
+
+    Args:
+        client (MongoClient): [description]
+        db_name (str): [description]
+        collection_name (str): [description]
+
+    Returns:
+        Collection: [description]
+    """
+    db = client[db_name]
+    schema_template = get_schema_template(collection_name)
+    collection_name = DATABASE_COLLECTION_MAPPING[db_name][collection_name]
+    schema = compile_schema_template(schema_template)
+    if collection_name not in db.collection_names():
+        print(f"creating collection: {collection_name}")
+        collection = db.create_collection(name=collection_name, validator=schema)
+    else:
+        if args.mongodb_drop:
+            print(f"dropping collection {collection_name} in database {db_name}")
+            db.drop_collection(collection_name)
+            print(f"recreating collection {collection_name} in {db_name}" )
+            collection = db.create_collection(name=collection_name,
+                                              validator=schema)
+        else:
+            print(f"re-using existing collection: {collection_name}")
+            collection = db[collection_name]
+    return collection
+
+
+def mongo_create_static_database(args: Namespace, client: MongoClient) -> None:
+    """[summary]
+
+    Args:
+        client (MongoClient): [description]
+        collection_name (str): [description]
+    """
+    pi_info = get_pi_info()
+    server_info = client.server_info()
+    #the database does not exist
+    if 'static' not in mongo_databases(client):
+        db = client['static']
+        if args.collection_name != 'all':
+            if args.collection_name in ['system', 'gpios']:
+                pidict = pi_info.__getattribute__(args.collection_name)
+                collection = _create_collection(args, client, 'static', args.collection_name)
+                collection.insert(pidict)
+            elif args.collection_name in ['relays']:
+                relay_info = RelayInfo()
+                relaydict = relay_info.data
+                collection = _create_collection(args, client, 'static', args.collection_name)
+                collection.insert(relaydict)
+        else:
+            for collection in ['system', 'gpios', 'relays']:
+                if collection in ['system', 'gpios']:
+                    pidict = pi_info.__getattribute__(collection)
+                    collection = _create_collection(args, client, 'static', collection)
+                    collection.insert(pidict)
+                elif collection in ['relays']:
+                    relay_info = RelayInfo()
+                    relaydict = relay_info.data
+                    collection = _create_collection(args, client, 'static',
+                                                    collection)
+                    collection.insert(relaydict)
+
+    else:
+        if args.mongodb_drop:
+            print("db exists, dropping and recreating database")
+            client.drop_database('static')
+            db = client['static']
+        else:
+            print("adding or updating specified collections")
+        if args.collection_name != 'all':
+            if args.collection_name in ['system', 'gpios']:
+                pidict = pi_info.__getattribute__(args.collection_name)
+                collection = _create_collection(args, client, 'static',
+                                                args.collection_name)
+                collection.insert(pidict)
+            elif args.collection_name in ['relays']:
+                relay_info = RelayInfo()
+                relaydict = relay_info.data
+                collection = _create_collection(args, client, 'static', args.collection_name)
+                collection.insert(relaydict)
+        else:
+            for collection in ['system', 'gpios', 'relays']:
+                if collection in ['system', 'gpios']:
+                    pidict = pi_info.__getattribute__(collection)
+                    collection = _create_collection(args, client, 'static', collection)
+                    collection.insert(pidict)
+                elif collection in ['relays']:
+                    relay_info = RelayInfo()
+                    relaydict = relay_info.data
+                    collection = _create_collection(args, client, 'static',
+                                                    collection)
+                    collection.insert(relaydict)
+
 
 
 def write_schema(args: Namespace, data) -> None:
@@ -255,12 +395,11 @@ def write_schema(args: Namespace, data) -> None:
 
 def write_info(args: Namespace, data):
     """Write pi info to JSON file
-
+    
     Args:
         args ([argparse.ArgumentParser]): the args object
         data ([dict]): dict format of PiInfo object
     """
-    #print(type(data))
     file_name = FILE_MAPPING[args.collection_name]
     with open(f"{args.data_out_dir}/{file_name}.{FILE_MAPPING['extension']}", 'w') as file:
         print(
@@ -300,6 +439,7 @@ def main(args):
     #only get pi_info if we need it.
     if args.write_info or args.print_info:
         pi_info = get_pi_info()
+        relay_info = RelayInfo()
     # print data
     if args.print_info:
         if args.collection_name == 'all':
@@ -313,17 +453,24 @@ def main(args):
         print(get_json(schema)) if args.debug else None
         write_schema(args, get_json(schema))
     if args.write_info:
-        print(
-            get_json(pi_info.__dict__) if args.collection_name ==
-            'all' else get_json(pi_info.__dict__[args.collection_name])) if args.debug else None
-        write_info(
-            args,
-            get_json(pi_info.__dict__) if args.collection_name == 'all' else get_json(pi_info.__dict__[args.collection_name])
-        )
+        if args.collection_name != 'all' and args.collection_name in ['system', 'gpios']:
+            print(
+                get_json(pi_info.__dict__) if args.collection_name ==
+                'all' else get_json(pi_info.__dict__[args.collection_name])) if args.debug else None
+            write_info(
+                args,
+                get_json(pi_info.__dict__) if args.collection_name == 'all' else get_json(pi_info.__dict__[args.collection_name])
+            )
+        elif args.collection_name != 'all' and args.collection_name in ['relays']:
+            print(get_json(relay_info.data)) if args.debug else None
+            write_info(
+                args,
+                get_json(relay_info.data)
+            )
 
     if args.mongodb_dbs or args.mongodb_db is not None:
         mongo = mongo_connection(args)
-        
+
     if args.mongodb_dbs:
         databases = mongo_databases(mongo)
         print(f"{databases}")
@@ -331,9 +478,12 @@ def main(args):
     if args.mongodb_db is not None:
         print("True") if mongo_database_created(mongo, args.mongodb_db) else print("False")
 
-        
-
-
+    if args.mongodb_create_static_db:
+        mongo = mongo_connection(args)
+        print("database exists") if mongo_database_created(mongo, 'static') else print("database does not exist") if args.debug else None
+        ret = mongo_create_static_database(args, mongo)
+        if ret:
+            print("created db")
 
 # run as a script called from the shell
 if __name__ == '__main__':
