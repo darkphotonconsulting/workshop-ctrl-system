@@ -32,7 +32,8 @@ As a power DIY dude, the workshop build project should take electronic automatio
 >
 > [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 
-The backend is MongoDB
+The backend is MongoDB, and this is problematic as recent versions of mongodb are not compatible with recent arm7l versions of raspbian. 
+A supported 64-bit version of `Ubuntu 20.04` is available for installation on the pi, however the `pi-gen` tool does not currently support ubuntu. :ji
 
 The backend services are python based and consists of
 
