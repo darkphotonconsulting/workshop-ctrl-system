@@ -1,0 +1,215 @@
+
+ /*
+ * Centering the body content
+ */
+
+body {
+    display: flex;
+    /* margin: 5px; */
+    background-color: honeydew;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    flex-direction: column;
+    flex-flow: column;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    padding: 5%;
+}
+
+/* what happens in the container stays in the container */
+
+.container {
+  /* width: 100vw; */
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  flex-flow: column;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  background-color: rgb(129, 129, 129);
+  z-index: 1;
+}
+
+/* Base Items  */
+div.page {
+    display: inherit;
+    flex-direction: inherit;
+    flex-flow: inherit;
+    align-items: inherit;
+    justify-content: inherit;
+    align-content: inherit;
+    background-color: rgb(195, 199, 202);
+    z-index: 2;
+}
+
+div.header {
+  order: 1;
+  align-items: inherit;
+  align-content: inherit;
+  justify-content: inherit;
+}
+div.header h1.title {
+  margin: 0;
+  font-size: 1.7em;
+  color: rgb(0, 0, 0);
+  text-transform: uppercase;
+}
+
+div.header h2.subtitle {
+  margin: 0;
+  font-size: 1.2em;
+  color: rgb(0, 0, 0);
+  text-transform: uppercase;
+}
+
+div.results {
+  display: flex;
+  order: 2;
+  flex-direction: row;
+  flex-flow: row;
+  padding: 10px;
+  margin: 5px;
+  justify-content: space-evenly;
+  align-items: center;
+  align-content: center;
+  background-color: #515091;
+  border: 2px solid black;
+  border-radius: 12px;
+  border-color: black;
+}
+
+div.result {
+  display: flex;
+  flex-direction: column;
+  flex-flow: column;
+  justify-content: inherit;
+  align-items: inherit;
+  align-content: inherit;
+  flex: 0 1 auto;
+  background-color: #515091;
+  border: 1px dotted black;
+  border-radius: 12px;
+  border-color: black;
+  padding: 10px;
+  margin: 5px;
+}
+
+img.result_avatar {
+    border-radius: 25px;
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: contain;
+}
+
+img.result_image {
+    border-radius: 25px;
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: contain;
+}
+
+div.result_warn {
+  flex: 0 1 auto;
+  order: 3;
+  background-color: #acad58;
+}
+
+div.form {
+    order: 5
+}
+
+/* Page Specific items  */
+
+/* Relays */
+
+div.relay_page {
+    display: inherit;
+    flex-direction: inherit;
+    flex-flow: inherit;
+    align-items: inherit;
+    justify-content: inherit;
+    align-content: inherit;
+    background-color: rgb(195, 199, 202);
+}
+
+div.relay_header {
+  order: 1;
+  align-items: inherit;
+  align-content: inherit;
+  justify-content: inherit;
+}
+
+div.relay_header h1.relay_title {
+  margin: 0;
+  font-size: 1.7em;
+  color: rgb(0, 0, 0);
+  text-transform: uppercase;
+}
+
+div.relay_header h2.relay_subtitle {
+  margin: 0;
+  font-size: 1.2em;
+  color: rgb(0, 0, 0);
+  text-transform: uppercase;
+}
+
+div.relay_results {
+  display: flex;
+  order: 2;
+  flex-direction: row;
+  flex-flow: row;
+  padding: 10px;
+  margin: 5px;
+  justify-content: space-evenly;
+  align-items: center;
+  align-content: center;
+  background-color: #515091;
+  border: 2px solid black;
+  border-radius: 12px;
+  border-color: black;
+}
+
+div.relay_result {
+  display: flex;
+  flex-direction: column;
+  flex-flow: column;
+  justify-content: inherit;
+  align-items: inherit;
+  align-content: inherit;
+  flex: 0 1 auto;
+  background-color: #515091;
+  border: 1px dotted black;
+  border-radius: 12px;
+  border-color: black;
+  padding: 10px;
+  margin: 5px;
+}
+
+img.relay_result_avatar {
+    border-radius: 25px;
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: contain;
+}
+
+img.relay_result_image {
+    border-radius: 25px;
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: contain;
+}
+
+div.relay_result_warn {
+  flex: 0 1 auto;
+  order: 3;
+  background-color: #acad58;
+}
+
+div.relay_form {
+    order: 5
+}
+
+/* GPIO Pins */
