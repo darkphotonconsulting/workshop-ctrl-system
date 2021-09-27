@@ -86,11 +86,13 @@ def api_system():
     #print()
     args = request.args
     results = []
+    
     if request.json is not None and len(args.keys()) == 0:
+        print("json input in request data, using as search filder")
         search_data = request.json
         print(f"search_data: {search_data}")
         try:
-            for system in System.objects():
+            for system in System.objects(**search_data):
                 print(system.model)
                 results.append(json.loads(system.to_json()))
         except RuntimeError as runtime_error:
@@ -98,14 +100,26 @@ def api_system():
         finally:
             return jsonify(results)
     else:
-        try:
-            for system in System.objects():
-                print(system.model)
-                results.append(json.loads(system.to_json()))
-        except RuntimeError as runtime_error:
-            print('results done..')
-        finally:
-            return jsonify(results)
+        if 'json_output' in args and bool(args['json_output']):
+            print('json output set via args')
+            try:
+                for system in System.objects():
+                    print(system.model)
+                    results.append(json.loads(system.to_json()))
+            except RuntimeError as runtime_error:
+                print('results done..')
+            finally:
+                return jsonify(results)
+        else:
+            print('json output set via args')
+            try:
+                for system in System.objects():
+                    print(system.model)
+                    results.append(json.loads(system.to_json()))
+            except RuntimeError as runtime_error:
+                print('results done..')
+            finally:
+                return jsonify(results)
 
 
 @app.route('/api/gpios', methods=['POST','GET','DELETE'])

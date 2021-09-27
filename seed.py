@@ -31,7 +31,7 @@ from collections import OrderedDict
 from config.settings import Config
 from pylibs.pi import PiInfo, PiInfoEncoder
 from pylibs.relay import RelayInfo
-from pylibs.schema.schemas import DefaultSchemas, SchemaFactory
+from pylibs.schema.default_schemas import DefaultSchemas, SchemaFactory
 
 # mappings for writing files
 

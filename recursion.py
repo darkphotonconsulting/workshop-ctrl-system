@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import json
-from pylibs.schema.schemas import DefaultSchemas
+from pylibs.schema.default_schemas import DefaultSchemas
 
 schemas = DefaultSchemas()
 gpios = schemas.gpios
