@@ -1,0 +1,76 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div class='pin_page'>
+    <div class='pin_header'>
+        <h1 class="pin_title">GPIO Pins</h1>    
+        <h2 class='pin_subtitle' >GPIO pin display panel</h2>
+        <hr/>
+    </div>
+    {% if results|length > 0 %}
+        <div class='pin_results'>
+            <nav class='pin_navigation'>
+                <ul class='pin_list_top'>
+                    {% for result_top in results|sort(attribute='header_row') if result_top.header_col == 1%}
+                            <li class={{result_top.label.lower()}}>
+                            <div class='pin_result'>
+                                <div class='pin_details'>
+                                    <hr/>
+                                    <div class='pin_label'>
+                                        <p>{{result_top.label}}</p>
+                                    </div>
+                                    <div class='pin_description'>
+                                        <p>{{result_top.data.descr}}</p>
+                                    </div>
+                                    <div class='pin_info_url'>
+                                        <a href={{result_top.info_url}}>
+                                            Pinout Info
+                                        </a>
+                                    </div>
+                                    <hr/>
+                                </div>
+                            </div>
+                            </li>
+
+                    {% endfor %}
+                </ul>
+                <ul class='pin_list_bottom'>
+                    {% for result_bottom in results|sort(attribute='header_row') if result_bottom.header_col == 2%}
+                            <li class={{result_bottom.label.lower()}}>
+                                <div class='pin_result'>
+                                    <div class='pin_details'>
+                                        <hr/>
+                                        <div class='pin_label'>
+                                            <p>{{result_bottom.label}}</p>
+                                        </div>
+                                        
+                                        <div class='pin_description'>
+                                            <p>{{result_bottom.data.descr}}</p>
+                                        </div>
+                                        <div class='pin_info_url'>
+                                            <a href={{result_bottom.info_url}}>
+                                                Pinout Info
+                                            </a>
+                                        </div>
+                                        <hr/>
+                                    </div>
+                                </div>
+                            </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+        </div>
+    {% else %}
+        <div class='pin_result_warn'>
+            <h3>No GPIOS Found, Reasons this may happen</h3>
+            <ul>
+                <li>The system is not a Raspberry Pi</li>
+                <li>The seed.py script was not properly executed before starting services</li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+    <hr/>
+</div>
+{% endblock %}

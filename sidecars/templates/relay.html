@@ -1,0 +1,116 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div class='relay_page'>
+    <div class='relay_header'>
+        <h1 class="relay_title">Relays</h1>    
+        <h2 class='relay_subtitle' >Relay Configuration Panel</h2>
+        <hr/>
+    </div>
+    {% if results|length > 0 %}
+        <div class='relay_results'>
+            {% for result in results %}
+                <div class='relay_result'>
+
+                    <div class='relay_result_avatar'>
+                        <img class='avatar_image' src='https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/SPST-NO_relay_symbol.svg/78px-SPST-NO_relay_symbol.svg.png' alt='Relay'>
+                    </div>
+
+                    <div class='relay_result_state'>
+                        {% if result.state %}
+                            <img class='relay_result_image' src='https://upload.wikimedia.org/wikipedia/commons/3/3d/Blue_dot.png' alt='Device Connected' style='width:20%'> 
+                            <p>state: occupied</p>
+                        {% else %} 
+                            <img class='relay_result_image' src='https://upload.wikimedia.org/wikipedia/commons/0/0e/Basic_red_dot.png' alt='No Devices Connected' style='width:20%'>    
+                            <p>state: vacant</p>
+                        {% endif %}
+                    </div>
+                    <div class='relay_result_summary'>
+                        <p class='result_description'><b>description:</b> {{result.description}}</p>
+                        <p class='result_description'><b>relay_channel:</b> {{result.relay_channel}}</p>    
+                        <p class='result_description'><b>gpio_port:</b> {{result.gpio_port}}<p>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class='relay_result_warn'>
+            <h3>No Relays Created, use the seed script, the form on this page or the API to create relays</h3>
+        </div>
+    </div>
+    {% endif %}
+    <hr/>
+        <div class='relay_form'>
+            <form method="POST">
+                <fieldset class="form-field">
+                    {{ form.relay_channel.label }}
+                    {{ form.relay_channel }}
+                        {% if form.relay_channel.errors %}
+                            <ul class="errors">
+                                {% for error in form.relay_channel.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                </fieldset> 
+                <fieldset class="form-field">
+                    {{ form.normally_open.label }}
+                    {{ form.normally_open }}
+                        {% if form.normally_open.errors %}
+                            <ul class="errors">
+                                {% for error in form.normally_open.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                </fieldset> 
+                <fieldset class="form-field">
+                    {{ form.board_port.label }}
+                    {{ form.board_port }}
+                        {% if form.board_port.errors %}
+                            <ul class="errors">
+                                {% for error in form.board_port.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                </fieldset> 
+                <fieldset class="form-field">
+                    {{ form.gpio_port.label }}
+                    {{ form.gpio_port }}
+                        {% if form.gpio_port.errors %}
+                            <ul class="errors">
+                                {% for error in form.gpio_port.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                </fieldset> 
+                <fieldset class="form-field">
+                    {{ form.description.label }}
+                    {{ form.description }}
+                        {% if form.description.errors %}
+                            <ul class="errors">
+                                {% for error in form.description.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                </fieldset> 
+                <fieldset class="form-field">
+                    {{ form.submit.label }}
+                    {{ form.submit }}
+                        {% if form.submit.errors %}
+                            <ul class="errors">
+                                {% for error in form.submit.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                </fieldset> 
+            </form>
+        </div>
+</div>
+{% endblock %}
