@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div class='system_page'>
+    <div class='system_header'>
+        <h1 class="system_title">System</h1>    
+        <h2 class='system_subtitle' >System Info</h2>
+        <hr/>
+    </div>
+    <div class='system_results'>
+        <div class='system_result'>
+            {% for key, value in system.items() %}
+                <p><b>{{key}}:</b> {{value}} </p>
+            {% endfor %}
+            
+        </div>
+    </div>
+    <hr/>
+</div>
+{% endblock %}
