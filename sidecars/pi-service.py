@@ -38,29 +38,40 @@ import requests
 import re
 from pymongo import ReadPreference
 from pylibs.schema.user_schemas import System, Relay, Pin
+from pylibs.schema.user_schemas import SystemGraphQL, RelayGraphQL, PinDataGraphQL, PinMapGraphQL,PinGraphQL, Query, GraphQLFactory
 from pylibs.forms.pi_server import RelayForm
+from flask_graphql import GraphQLView
 
 SECRET_KEY = os.urandom(32)
 
 
 
 
-
+graphql_schema_object = GraphQLFactory(Query, [SystemGraphQL, RelayGraphQL, PinDataGraphQL, PinMapGraphQL, PinGraphQL])
+print(graphql_schema_object)
 
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
+# app.config['MONGO_HOST'] = 'mongo.darkphotonworks-labs.io'
+# app.config['MONGO_PORT'] = 27017
+# app.config['MONGO_USERNAME'] = 'root'
+# app.config['MONGO_PASSWORD'] = 'toor'
+# app.config['MONGO_AUTH_SOURCE'] = 'admin'
 app.config['MONGODB_SETTINGS'] = {
-    'host': '127.0.0.1',
+    'host': 'mongo.darkphotonworks-labs.io',
     'port': 27017,
+    'username': 'headunit',
+    'password': 'unithead',
     'db': 'static'
+
 }
 
 app.config['SECRET_KEY'] = SECRET_KEY
 db = MongoEngine(app)
 
 
-conn = connect(db='static')
+#conn = connect(db='static')
 #print(conn)
 
 #print(Pin.objects().count())
@@ -72,6 +83,34 @@ conn = connect(db='static')
 #     print('generation done')
 # except RuntimeError as runtime_error:
 #     print('generation done')
+
+@app.route('/api/graphql', methods=['GET','POST'])
+def api_graphql():
+    return GraphQLView.as_view(
+        'graphql',
+        schema=graphql_schema_object.schema,
+        graphiql=True
+    )()
+
+@app.route('/api/schema', methods=['GET','POST'])
+def api_schema():
+    return jsonify(
+       graphql_schema_object.schema.introspect() 
+    )
+
+# def api_graphql():
+#     view =  GraphQLView.as_view(
+#                         'graphql',
+#                         schema=graphql_schema_object.schema,
+#                         graphiql=True
+#     )
+#     print(type(view))
+#     print(dir(view))
+#     return view()
+
+# app.add_url_rule('/api/graphql',
+#                  view_func=api_graphql
+# )
 
 
 @app.route('/api/test', methods=['GET'])
@@ -190,7 +229,8 @@ def api_relays():
         print('results done..')
     if request.method == 'GET':
         print('processed get')
-        if json_data is None and 'json_output' in args and bool(args['json_output']):
+        print(args)
+        if json_data is None and 'json_output' in args.keys() and bool(args['json_output']):
             print('json_outputs...')
             print(json_data)
             print(args)
@@ -198,6 +238,8 @@ def api_relays():
                 for relay in Relay.objects:
                     results.append(json.loads(relay.to_json()))
             except RuntimeError as runtime_error:
+                print('results done')
+            finally:
                 return jsonify(results)
         else:
             print('form outputs...')
