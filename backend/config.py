@@ -18,7 +18,6 @@ class DevelopmentConfig(object):
                  mongo_password: str = None,
                  **kwargs):
 
-        print(kwargs)
         if mongo_host is None:
             self.mongo_host = '127.0.0.1'
         else:
@@ -78,7 +77,6 @@ class ProductionConfig(object):
                  mongo_password: str = None,
                  **kwargs):
 
-        print(kwargs)
         if mongo_host is None:
             self.mongo_host = 'mongo.darkphotonworks-labs.io'
         else:
