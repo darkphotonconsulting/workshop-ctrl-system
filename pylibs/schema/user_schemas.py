@@ -55,6 +55,7 @@ class PinMap(EmbeddedDocument):
     gpio_bcm = StringField()
     physical_board = StringField()
     wiring_pi = StringField()
+    uuid = StringField()
 
 
 class PinData(EmbeddedDocument):
@@ -65,9 +66,9 @@ class PinData(EmbeddedDocument):
     """
     title = StringField()
     descr = StringField()
-    funcs = ListField()
+    funcs = ListField(StringField())
     boardmap = EmbeddedDocumentField(PinMap)
-
+    uuid = StringField()
 
 class Pin(Document):
     """MongoEngine Schema for GPIOS (contains embedded doc types)
