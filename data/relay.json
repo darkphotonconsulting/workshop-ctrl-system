@@ -15,14 +15,12 @@
     },
     {
         "relay_channel": false,
-        "pcm_type": false,
         "normally_open": true,
         "gpio_port": 4,
         "board_port": 7,
         "description": "disconnected"
     },
     {
-        "pcm_type": false,
         "normally_open": true,
         "relay_channel": 4,
         "gpio_port": 5,
