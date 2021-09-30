@@ -29,6 +29,7 @@ from pymongo.errors import CollectionInvalid
 
 from collections import OrderedDict
 from config.settings import Config
+from backend.config import DevelopmentConfig, ProductionConfig
 from pylibs.pi import PiInfo, PiInfoEncoder
 from pylibs.relay import RelayInfo
 from pylibs.schema.default_schemas import DefaultSchemas, SchemaFactory
@@ -79,19 +80,32 @@ mongo_crud_args = argparser.add_argument_group('mongoDB crud')
 template_args = argparser.add_argument_group('schemas')
 info_args = argparser.add_argument_group('system')
 
+# test using refactored config classes
+
+if 'MONGODB_USER' in os.environ and 'MONGODB_PASS' in os.environ:
+    username = os.environ['MONGODB_USER']
+    password = os.environ['MONGODB_PASS']
+else:
+    print("Please prefix commands with MONGODB_USER=<user> MONGODB_PASS=<pass>")
+    exit()
+
+
+config = ProductionConfig(mongo_username=username, mongo_password=password)
+
+#print(config.mongo_host)
 # args
 mongo_args.add_argument('--mongodb-host',
     action='store',
     type=str,
     required=False,
-    default=Config.mongodb_host,
+    default=config.mongo_host,
     help="MongoDB host"
 )
 mongo_args.add_argument('--mongodb-port',
     action='store',
     type=int,
     required=False,
-    default=Config.mongodb_port,
+    default=config.mongo_port,
     help="MongoDB Port"
 )
 
@@ -242,7 +256,7 @@ def get_pi_info() -> PiInfo:
     return PiInfo()
 
 # mongo db functions
-def mongo_connection(args: Namespace) -> MongoClient:
+def mongo_connection(config) -> MongoClient:
     """
 
     Args:
@@ -253,7 +267,7 @@ def mongo_connection(args: Namespace) -> MongoClient:
     """
 
     return MongoClient(
-        f"mongodb://{args.mongodb_host}:{args.mongodb_port}")
+        f"{config.mongo_connect_string}")
 
 def mongo_databases(client: MongoClient) -> list:
     """List the databases in mongodb
@@ -264,7 +278,7 @@ def mongo_databases(client: MongoClient) -> list:
     Returns:
         list: list of databases (empty if none, which probably won't happen)
     """
-    return client.database_names()
+    return [db['name'] for db in client.list_databases()]
 
 def mongo_database_created(client: MongoClient, db: str) -> bool:
     """Verify if a database has already been created
@@ -293,7 +307,7 @@ def _create_collection(args: Namespace, client: MongoClient, db_name: str, colle
     schema_template = get_schema_template(collection_name)
     collection_name = DATABASE_COLLECTION_MAPPING[db_name][collection_name]
     schema = compile_schema_template(schema_template)
-    if collection_name not in db.collection_names():
+    if collection_name not in [collection['name'] for collection in db.list_collections()]:
         print(f"creating collection: {collection_name}")
         collection = db.create_collection(name=collection_name, validator=schema)
     else:
@@ -325,24 +339,31 @@ def mongo_create_static_database(args: Namespace, client: MongoClient) -> None:
             if args.collection_name in ['system', 'gpios']:
                 pidict = pi_info.__getattribute__(args.collection_name)
                 collection = _create_collection(args, client, 'static', args.collection_name)
-                collection.insert(pidict)
+                if args.collection_name == 'system':
+                    collection.insert_one(pidict)
+                elif args.collection_name == 'gpios':
+                    collection.insert_many(pidict)
             elif args.collection_name in ['relays']:
                 relay_info = RelayInfo()
                 relaydict = relay_info.data
                 collection = _create_collection(args, client, 'static', args.collection_name)
-                collection.insert(relaydict)
+                collection.insert_many(relaydict)
         else:
-            for collection in ['system', 'gpios', 'relays']:
-                if collection in ['system', 'gpios']:
-                    pidict = pi_info.__getattribute__(collection)
-                    collection = _create_collection(args, client, 'static', collection)
-                    collection.insert(pidict)
-                elif collection in ['relays']:
+            for collection_name in ['system', 'gpios', 'relays']:
+                if collection_name in ['system', 'gpios']:
+                    pidict = pi_info.__getattribute__(collection_name)
+                    collection = _create_collection(args, client, 'static', collection_name)
+                    if collection_name == 'system':
+                        collection.insert_one(pidict)
+                    elif collection_name == 'gpios':
+                        collection.insert_many(pidict)
+                    #collection.insert(pidict)
+                elif collection_name in ['relays']:
                     relay_info = RelayInfo()
                     relaydict = relay_info.data
                     collection = _create_collection(args, client, 'static',
-                                                    collection)
-                    collection.insert(relaydict)
+                                                    collection_name)
+                    collection.insert_many(relaydict)
 
     else:
         if args.mongodb_drop:
@@ -356,24 +377,33 @@ def mongo_create_static_database(args: Namespace, client: MongoClient) -> None:
                 pidict = pi_info.__getattribute__(args.collection_name)
                 collection = _create_collection(args, client, 'static',
                                                 args.collection_name)
-                collection.insert(pidict)
+                if args.collection_name == 'system':
+                    collection.insert_one(pidict)
+                elif args.collection_name == 'gpios':
+                    collection.insert_many(pidict)
+                #collection.insert(pidict)
             elif args.collection_name in ['relays']:
                 relay_info = RelayInfo()
                 relaydict = relay_info.data
                 collection = _create_collection(args, client, 'static', args.collection_name)
-                collection.insert(relaydict)
+                collection.insert_many(relaydict)
         else:
-            for collection in ['system', 'gpios', 'relays']:
-                if collection in ['system', 'gpios']:
-                    pidict = pi_info.__getattribute__(collection)
-                    collection = _create_collection(args, client, 'static', collection)
-                    collection.insert(pidict)
-                elif collection in ['relays']:
+            for collection_name in ['system', 'gpios', 'relays']:
+                if collection_name in ['system', 'gpios']:
+                    pidict = pi_info.__getattribute__(collection_name)
+                    collection = _create_collection(args, client, 'static', collection_name)
+                if collection_name == 'system':
+                    collection.insert_one(pidict)
+                elif collection_name == 'gpios':
+                    collection.insert_many(pidict)
+                    #collection.insert(pidict)
+                elif collection_name in ['relays']:
                     relay_info = RelayInfo()
                     relaydict = relay_info.data
                     collection = _create_collection(args, client, 'static',
-                                                    collection)
-                    collection.insert(relaydict)
+                                                    collection_name)
+                    print(type(relaydict))
+                    collection.insert_many(relaydict)
 
 
 
@@ -469,7 +499,7 @@ def main(args):
             )
 
     if args.mongodb_dbs or args.mongodb_db is not None:
-        mongo = mongo_connection(args)
+        mongo = mongo_connection(config)
 
     if args.mongodb_dbs:
         databases = mongo_databases(mongo)
@@ -479,7 +509,7 @@ def main(args):
         print("True") if mongo_database_created(mongo, args.mongodb_db) else print("False")
 
     if args.mongodb_create_static_db:
-        mongo = mongo_connection(args)
+        mongo = mongo_connection(config)
         print("database exists") if mongo_database_created(mongo, 'static') else print("database does not exist") if args.debug else None
         ret = mongo_create_static_database(args, mongo)
         if ret:
