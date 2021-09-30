@@ -6,6 +6,7 @@ from RPi import GPIO
 from bs4 import BeautifulSoup
 import requests
 import re
+from uuid import uuid4
 
 from urllib.parse import (
     urlparse,
@@ -214,6 +215,9 @@ class PiInfo(object):
                     )
                 )
             )
+
+            # add a uuid in boardmap for better mongoing 
+            boardmap['uuid'] = str(uuid4())
             #add a better description...
             desc = list(
                 filter(lambda x: type(x.string) is not type(None),
@@ -234,7 +238,9 @@ class PiInfo(object):
                 "title": article.contents[0].string,
                 "descr": description_text,
                 "funcs": funcs,
-                "boardmap": boardmap
+                "boardmap": boardmap,
+                "uuid": str(uuid4())
+                #"id"
             }
         else:
             print(f"processing {label} as a power pin")
@@ -251,6 +257,8 @@ class PiInfo(object):
                 "boardmap": {
                     "physical_board": -1,
                     "gpio_bcm" : -1,
-                    "wiring_pi": -1
-                }
+                    "wiring_pi": -1,
+                    "uuid": str(uuid4())
+                },
+                "uuid": str(uuid4())
             }

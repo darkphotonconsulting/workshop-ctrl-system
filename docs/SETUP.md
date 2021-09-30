@@ -57,12 +57,18 @@ The backend services are python based and consists of
 
 ## TODO
 
-- [ ] Improve Docs
+- [x] Improve Docs
 - [x] ~~Infrastructure As Code for pi sd configuration~~
 - [x] ~~Decide on backend design (influx, mongo, flux, telegraf, etc)~~
-  - :📓 options are limited due to current supported raspian OS being 32 bit but raspberry pi being a 64 bit arm cpu. mongo, influx, and most k/v stores require a 64 bit OS to operate.
+  - :📓 ~~options are limited due to current supported raspian OS being 32 bit but raspberry pi being a 64 bit arm cpu. mongo, influx, and most k/v stores require a 64 bit OS to operate.~~
 - [ ] ~~Create backend schema(s) and relational logic~~
-  - [ ] Not complete but, WIP (work in progress)
+  - [x] ~~Not complete but, WIP (work in progress)~~
+  - [ ] resolve list fields missing in graphql returns ??
+
+## Useful links 
+
+- graphene [docs](https://graphene-python.org/)
+- [issue resolved](https://github.com/graphql-python/graphene-mongo/issues/32) querying embedded docs
 
 ## Prerequisites
 
