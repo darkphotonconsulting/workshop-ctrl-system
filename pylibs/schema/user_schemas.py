@@ -34,12 +34,25 @@ class Relay(Document):
     meta = {
         'collection': 'static-relays'
     }
-    relay_channel = IntField(required=True,unique=True)
-    description = StringField(required=True, unique=True)
-    normally_open = BooleanField(required=True)
-    board_port = IntField(required=True, unique=True)
-    gpio_port = IntField(required=True, unique=True)
+    model = StringField()
     state = BooleanField(required=True, default=False)
+    description = StringField(required=True, unique=True)
+    manufacturer = StringField(required=True, unique=False)
+    #relay_channel = IntField(required=True, unique=True)
+    #normally_open = BooleanField(required=True, unique=False)
+    ac_voltage_max = IntField()
+    ac_voltage_min = IntField()
+    dc_voltage_max = IntField()
+    dc_voltage_min = IntField()
+    ac_amperage_min = IntField()
+    ac_amperage_max = IntField()
+    dc_amperage_min = IntField()
+    dc_amperage_max = IntField()
+    activation_type = StringField()
+    activation_voltage = IntField()
+    relay_channel = IntField(required=True,unique=True)
+    normally_open = BooleanField(required=True)
+
 
 class RelayGraphQL(MongoengineObjectType):
     class Meta:
@@ -52,9 +65,9 @@ class PinMap(EmbeddedDocument):
     Extends:
         Document (Document): MongoEngine Document type
     """
-    gpio_bcm = StringField()
-    physical_board = StringField()
-    wiring_pi = StringField()
+    gpio_bcm = IntField()
+    physical_board = IntField()
+    wiring_pi = IntField()
     uuid = StringField()
 
 
