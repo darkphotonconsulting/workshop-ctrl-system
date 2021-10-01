@@ -52,12 +52,22 @@ class DefaultSchemas(object):
     }
 
     relays = {
-        "normally_open": bool,
-        "relay_channel": int,
-        "board_port": int,
-        "gpio_port": int,
+        "model": str,
+        "state": bool,
         "description": str,
-        "state": bool
+        "manufacturer": str,
+        "relay_channel": int,
+        "normally_open": bool,
+        "ac_voltage_max": int,
+        "ac_voltage_min": int,
+        "dc_voltage_max": int,
+        "dc_voltage_min": int,
+        "ac_amperage_max": int,
+        "ac_amperage_min": int,
+        "dc_amperage_max": int,
+        "dc_amperage_min": int,
+        "activation_type": str,
+        "activation_voltage": int
     }
 
 
