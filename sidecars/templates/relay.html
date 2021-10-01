@@ -67,28 +67,6 @@
                         {% endif %}
                 </fieldset> 
                 <fieldset class="form-field">
-                    {{ form.board_port.label }}
-                    {{ form.board_port }}
-                        {% if form.board_port.errors %}
-                            <ul class="errors">
-                                {% for error in form.board_port.errors %}
-                                <li>{{ error }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                </fieldset> 
-                <fieldset class="form-field">
-                    {{ form.gpio_port.label }}
-                    {{ form.gpio_port }}
-                        {% if form.gpio_port.errors %}
-                            <ul class="errors">
-                                {% for error in form.gpio_port.errors %}
-                                <li>{{ error }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                </fieldset> 
-                <fieldset class="form-field">
                     {{ form.description.label }}
                     {{ form.description }}
                         {% if form.description.errors %}
