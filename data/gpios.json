@@ -4,13 +4,15 @@
       "boardmap": {
         "gpio_bcm": -1,
         "physical_board": -1,
+        "uuid": "aa2496c8-3013-481d-983a-8cfc7ffb6403",
         "wiring_pi": -1
       },
       "descr": "All Raspberry Pi models since the B+ can provide up to 500mA on the 3v3 pins, thanks to a switching regulator. In some cases it may be possible to draw more but, due to lack of documentation and testing on the actual limits, 500mA is given as a rule of thumb. The 3v3 supply pin on the early Raspberry Pi had a maximum available current of only 50mA. The 5v supply coupled with a 3v3 regulator is recommended for powering 3.3v projects.",
       "funcs": [
         "power"
       ],
-      "title": "3v3 Power"
+      "title": "3v3 Power",
+      "uuid": "ee41ed98-9f79-4f00-a776-e70f647ad1e2"
     },
     "header_col": 1,
     "header_row": 1,
@@ -20,9 +22,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "15",
-        "physical_board": "10",
-        "wiring_pi": "16"
+        "gpio_bcm": 15,
+        "physical_board": 10,
+        "uuid": "f2f25ea3-d91a-417b-87f2-66bff2f0528b",
+        "wiring_pi": 16
       },
       "descr": "This pin doubles up as the UART receive pin, RX. It's also commonly known as Serial and, by default, will output a Console from your Pi that, with a suitable Serial cable, you can use to control your Pi via the command-line. The UART pins are useful for setting up a headless Pi (a Pi without a screen) and getting it connected to a network. UART can be used to talk to Serial GPS modules or sensors such as the PM5003, but you must make sure you disable the Serial Console in raspi-config first. On the Pi 3 and 4 the UART is, by default, used for Bluetooth and you may need to add dtoverlay=miniuart-bt to /boot/config.txt to achieve a stable. Learn more about UART Raspberry Pi UART documentation",
       "funcs": [
@@ -33,7 +36,8 @@
         "AVEIN VID11",
         "UART1 RXD"
       ],
-      "title": "GPIO 15 (UART Receive)"
+      "title": "GPIO 15 (UART Receive)",
+      "uuid": "af3ed58d-8421-42ef-ba8b-2aaae4be66ef"
     },
     "header_col": 2,
     "header_row": 5,
@@ -43,9 +47,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "17",
-        "physical_board": "11",
-        "wiring_pi": "0"
+        "gpio_bcm": 17,
+        "physical_board": 11,
+        "uuid": "c3a9675d-14b8-4d75-94b3-91ef8f07bc87",
+        "wiring_pi": 0
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -56,7 +61,8 @@
         "SPI1 CE1",
         "UART1 RTS"
       ],
-      "title": "GPIO 17"
+      "title": "GPIO 17",
+      "uuid": "6fb30ee7-a939-4f7e-a00a-0be5e9f5b854"
     },
     "header_col": 1,
     "header_row": 6,
@@ -66,9 +72,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "18",
-        "physical_board": "12",
-        "wiring_pi": "1"
+        "gpio_bcm": 18,
+        "physical_board": 12,
+        "uuid": "541c7652-a8e5-4bc2-a162-31cb351995a1",
+        "wiring_pi": 1
       },
       "descr": "GPIO 18 is used by PCM to provide a clock signal to an external audio device such as a DAC chip.",
       "funcs": [
@@ -79,7 +86,8 @@
         "SPI1 CE0",
         "PWM0"
       ],
-      "title": "GPIO 18 (PCM Clock)"
+      "title": "GPIO 18 (PCM Clock)",
+      "uuid": "4a72ed6e-60b6-4c09-a93d-9c874f950b9b"
     },
     "header_col": 2,
     "header_row": 6,
@@ -89,9 +97,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "27",
-        "physical_board": "13",
-        "wiring_pi": "2"
+        "gpio_bcm": 27,
+        "physical_board": 13,
+        "uuid": "d3fcb554-eb53-49da-8c72-69d406ce49d7",
+        "wiring_pi": 2
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -101,7 +110,8 @@
         "SD1 DAT3",
         "JTAG TMS"
       ],
-      "title": "GPIO 27"
+      "title": "GPIO 27",
+      "uuid": "e4999a16-202e-475c-99ee-439430309287"
     },
     "header_col": 1,
     "header_row": 7,
@@ -113,13 +123,15 @@
       "boardmap": {
         "gpio_bcm": -1,
         "physical_board": -1,
+        "uuid": "b666733d-5b3c-4ad3-a61d-9ca4030d7a7e",
         "wiring_pi": -1
       },
       "descr": "The Ground pins on the Raspberry Pi are all electrically connected, so it doesn't matter which one you use if you're wiring up a voltage supply. Generally the one that's most convenient or closest to the rest of your connections is tidier and easier, or alternatively the one closest to the supply pin that you use. For example, it's a good idea to use Physical Pin 17 for 3v3 and Physical Pin 25 for ground when using the SPI connections, as these are right next to the important pins for SPI0.",
       "funcs": [
         "power"
       ],
-      "title": "Ground"
+      "title": "Ground",
+      "uuid": "e8dfcdd1-f318-416c-b250-487e88ec9fe3"
     },
     "header_col": 2,
     "header_row": 7,
@@ -129,9 +141,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "22",
-        "physical_board": "15",
-        "wiring_pi": "3"
+        "gpio_bcm": 22,
+        "physical_board": 15,
+        "uuid": "068264e0-8eeb-46d7-ac66-b5ae4ed2a8f2",
+        "wiring_pi": 3
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -141,7 +154,8 @@
         "SD1 CLK",
         "JTAG TRST"
       ],
-      "title": "GPIO 22"
+      "title": "GPIO 22",
+      "uuid": "16b71066-1ed2-4f9f-9627-fe3e53a5e713"
     },
     "header_col": 1,
     "header_row": 8,
@@ -151,9 +165,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "23",
-        "physical_board": "16",
-        "wiring_pi": "4"
+        "gpio_bcm": 23,
+        "physical_board": 16,
+        "uuid": "8e19cd0d-3490-4100-be9e-d90b4865b9ee",
+        "wiring_pi": 4
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -163,7 +178,8 @@
         "SD1 CMD",
         "JTAG RTCK"
       ],
-      "title": "GPIO 23"
+      "title": "GPIO 23",
+      "uuid": "0bf93afc-dccd-45ff-aa8d-2f01c2b6e58e"
     },
     "header_col": 2,
     "header_row": 8,
@@ -175,13 +191,15 @@
       "boardmap": {
         "gpio_bcm": -1,
         "physical_board": -1,
+        "uuid": "0a9b71bd-e3c8-423f-aef0-721c0aadc8b9",
         "wiring_pi": -1
       },
       "descr": "All Raspberry Pi models since the B+ can provide up to 500mA on the 3v3 pins, thanks to a switching regulator. In some cases it may be possible to draw more but, due to lack of documentation and testing on the actual limits, 500mA is given as a rule of thumb. The 3v3 supply pin on the early Raspberry Pi had a maximum available current of only 50mA. The 5v supply coupled with a 3v3 regulator is recommended for powering 3.3v projects.",
       "funcs": [
         "power"
       ],
-      "title": "3v3 Power"
+      "title": "3v3 Power",
+      "uuid": "9b00ca44-3f2a-44cf-a7aa-7bd9d40a5a6c"
     },
     "header_col": 1,
     "header_row": 9,
@@ -191,9 +209,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "24",
-        "physical_board": "18",
-        "wiring_pi": "5"
+        "gpio_bcm": 24,
+        "physical_board": 18,
+        "uuid": "e56b1364-eadd-4623-9dfa-b97908ca0b14",
+        "wiring_pi": 5
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -203,7 +222,8 @@
         "SD1 DAT0",
         "JTAG TDO"
       ],
-      "title": "GPIO 24"
+      "title": "GPIO 24",
+      "uuid": "ad0ff2eb-35c2-4454-8a1c-21348fc91789"
     },
     "header_col": 2,
     "header_row": 9,
@@ -213,9 +233,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "10",
-        "physical_board": "19",
-        "wiring_pi": "12"
+        "gpio_bcm": 10,
+        "physical_board": 19,
+        "uuid": "44ac33f3-054c-4e7c-86fd-7e00bf27cccd",
+        "wiring_pi": 12
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -225,7 +246,8 @@
         "AVEOUT VID6",
         "AVEIN VID6"
       ],
-      "title": "GPIO 10"
+      "title": "GPIO 10",
+      "uuid": "630944cd-4531-4846-bfb5-ff2dbcef188b"
     },
     "header_col": 1,
     "header_row": 10,
@@ -237,13 +259,15 @@
       "boardmap": {
         "gpio_bcm": -1,
         "physical_board": -1,
+        "uuid": "b844b0c7-8b5e-43a9-b551-b40ddac2b38f",
         "wiring_pi": -1
       },
       "descr": "The 5v power pins are connected directly to the Pi's power input and will capably provide the full supply current of your mains adaptor, minus that used by the Pi itself. With a decent power supply, such as the official Pi adaptor, you can expect to pull about 1.5A. This varies by Pi model and adapter used. Devices that require a high current- such as LED panels, long LED strips or motors- should use an external power supply.",
       "funcs": [
         "power"
       ],
-      "title": "5v Power"
+      "title": "5v Power",
+      "uuid": "71ca37a8-0c5e-4fd0-9a5d-6d8dae8d6618"
     },
     "header_col": 2,
     "header_row": 1,
@@ -255,13 +279,15 @@
       "boardmap": {
         "gpio_bcm": -1,
         "physical_board": -1,
+        "uuid": "f940faf2-4a8c-4e07-b5fc-6ed0a8edbbba",
         "wiring_pi": -1
       },
       "descr": "The Ground pins on the Raspberry Pi are all electrically connected, so it doesn't matter which one you use if you're wiring up a voltage supply. Generally the one that's most convenient or closest to the rest of your connections is tidier and easier, or alternatively the one closest to the supply pin that you use. For example, it's a good idea to use Physical Pin 17 for 3v3 and Physical Pin 25 for ground when using the SPI connections, as these are right next to the important pins for SPI0.",
       "funcs": [
         "power"
       ],
-      "title": "Ground"
+      "title": "Ground",
+      "uuid": "67a06113-4001-43f6-8473-2ed7abe28c35"
     },
     "header_col": 2,
     "header_row": 10,
@@ -271,9 +297,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "9",
-        "physical_board": "21",
-        "wiring_pi": "13"
+        "gpio_bcm": 9,
+        "physical_board": 21,
+        "uuid": "3c650766-6b59-4d20-a138-064aa8ac41be",
+        "wiring_pi": 13
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -283,7 +310,8 @@
         "AVEOUT VID5",
         "AVEIN VID5"
       ],
-      "title": "GPIO 9"
+      "title": "GPIO 9",
+      "uuid": "acc17fc9-2369-4a3f-8269-c231d40cf645"
     },
     "header_col": 1,
     "header_row": 11,
@@ -293,9 +321,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "25",
-        "physical_board": "22",
-        "wiring_pi": "6"
+        "gpio_bcm": 25,
+        "physical_board": 22,
+        "uuid": "88a7d214-a113-4670-be8f-f902c84fff88",
+        "wiring_pi": 6
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -305,7 +334,8 @@
         "SD1 DAT1",
         "JTAG TCK"
       ],
-      "title": "GPIO 25"
+      "title": "GPIO 25",
+      "uuid": "546a8966-17b8-4849-997e-589facf31ab4"
     },
     "header_col": 2,
     "header_row": 11,
@@ -315,9 +345,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "11",
-        "physical_board": "23",
-        "wiring_pi": "14"
+        "gpio_bcm": 11,
+        "physical_board": 23,
+        "uuid": "1deb6989-6c02-44a9-aeee-cbe30a36b6d0",
+        "wiring_pi": 14
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -327,7 +358,8 @@
         "AVEOUT VID7",
         "AVEIN VID7"
       ],
-      "title": "GPIO 11"
+      "title": "GPIO 11",
+      "uuid": "130b9224-59b7-4aa7-a795-a5304a27b946"
     },
     "header_col": 1,
     "header_row": 12,
@@ -337,9 +369,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "8",
-        "physical_board": "24",
-        "wiring_pi": "10"
+        "gpio_bcm": 8,
+        "physical_board": 24,
+        "uuid": "ea81adaf-5c0a-4535-81cf-184e1c7e3433",
+        "wiring_pi": 10
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -349,7 +382,8 @@
         "AVEOUT VID4",
         "AVEIN VID4"
       ],
-      "title": "GPIO 8 (SPI Chip Select 0)"
+      "title": "GPIO 8 (SPI Chip Select 0)",
+      "uuid": "f75dc5e6-a6b1-4f84-9bf3-52146da27702"
     },
     "header_col": 2,
     "header_row": 12,
@@ -361,13 +395,15 @@
       "boardmap": {
         "gpio_bcm": -1,
         "physical_board": -1,
+        "uuid": "020697f7-c935-460f-859b-5afe14c0370d",
         "wiring_pi": -1
       },
       "descr": "The Ground pins on the Raspberry Pi are all electrically connected, so it doesn't matter which one you use if you're wiring up a voltage supply. Generally the one that's most convenient or closest to the rest of your connections is tidier and easier, or alternatively the one closest to the supply pin that you use. For example, it's a good idea to use Physical Pin 17 for 3v3 and Physical Pin 25 for ground when using the SPI connections, as these are right next to the important pins for SPI0.",
       "funcs": [
         "power"
       ],
-      "title": "Ground"
+      "title": "Ground",
+      "uuid": "bb28f820-c948-4261-8ba9-2cbaf3d268e3"
     },
     "header_col": 1,
     "header_row": 13,
@@ -377,9 +413,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "7",
-        "physical_board": "26",
-        "wiring_pi": "11"
+        "gpio_bcm": 7,
+        "physical_board": 26,
+        "uuid": "3dd1f098-2700-44ff-819d-4dd984f48bd1",
+        "wiring_pi": 11
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -389,7 +426,8 @@
         "AVEOUT VID3",
         "AVEIN VID3"
       ],
-      "title": "GPIO 7 (SPI Chip Select 1)"
+      "title": "GPIO 7 (SPI Chip Select 1)",
+      "uuid": "3c7831b6-0570-4fb1-b65b-fba732621833"
     },
     "header_col": 2,
     "header_row": 13,
@@ -399,9 +437,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "0",
-        "physical_board": "27",
-        "wiring_pi": "30"
+        "gpio_bcm": 0,
+        "physical_board": 27,
+        "uuid": "b470a918-1d18-4438-b4aa-8667bfae63ec",
+        "wiring_pi": 30
       },
       "descr": "These pins are generally reserved for i2c communication with an EEPROM. Connect those pins for auto configuration, if the board provides the feature (check the board description for details of EEPROM functionality).",
       "funcs": [
@@ -411,7 +450,8 @@
         "AVEOUT VCLK",
         "AVEIN VCLK"
       ],
-      "title": "GPIO 0 (HAT EEPROM i2c Data)"
+      "title": "GPIO 0 (HAT EEPROM i2c Data)",
+      "uuid": "da46d17c-dcd9-45de-a1b4-24f0b4013e7e"
     },
     "header_col": 1,
     "header_row": 14,
@@ -421,9 +461,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "1",
-        "physical_board": "28",
-        "wiring_pi": "31"
+        "gpio_bcm": 1,
+        "physical_board": 28,
+        "uuid": "0da555c2-4e99-4874-b56d-dc6f8b8503c6",
+        "wiring_pi": 31
       },
       "descr": "These pins are generally reserved for i2c communication with an EEPROM. Connect those pins for auto configuration, if the board provides the feature (check the board description for details of EEPROM functionality).",
       "funcs": [
@@ -433,7 +474,8 @@
         "AVEOUT DSYNC",
         "AVEIN DSYNC"
       ],
-      "title": "GPIO 1 (HAT EEPROM i2c Clock)"
+      "title": "GPIO 1 (HAT EEPROM i2c Clock)",
+      "uuid": "fe9c088c-d13e-43a7-b930-601dd947fc02"
     },
     "header_col": 2,
     "header_row": 14,
@@ -443,9 +485,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "5",
-        "physical_board": "29",
-        "wiring_pi": "21"
+        "gpio_bcm": 5,
+        "physical_board": 29,
+        "uuid": "babfb124-49d0-49f6-b323-8c7954d889c9",
+        "wiring_pi": 21
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -456,7 +499,8 @@
         "AVEIN VID1",
         "JTAG TDO"
       ],
-      "title": "GPIO 5"
+      "title": "GPIO 5",
+      "uuid": "4aafe66f-94a8-4693-95e5-af215d6404a0"
     },
     "header_col": 1,
     "header_row": 15,
@@ -466,9 +510,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "2",
-        "physical_board": "3",
-        "wiring_pi": "8"
+        "gpio_bcm": 2,
+        "physical_board": 3,
+        "uuid": "916a2a24-d39c-4b2f-a68f-b3ce79910689",
+        "wiring_pi": 8
       },
       "descr": "SDA includes a fixed, 1.8 k\u00e2\u0084\u00a6 pull-up to 3.3v, which means this pin is not suitable for use as a general purpose IO where no pull-up resistor is desired.",
       "funcs": [
@@ -478,7 +523,8 @@
         "AVEOUT VSYNC",
         "AVEIN VSYNC"
       ],
-      "title": "GPIO 2 (I2C Data)"
+      "title": "GPIO 2 (I2C Data)",
+      "uuid": "aa1d1bd6-e265-4446-adff-be546350c779"
     },
     "header_col": 1,
     "header_row": 2,
@@ -490,13 +536,15 @@
       "boardmap": {
         "gpio_bcm": -1,
         "physical_board": -1,
+        "uuid": "42406c34-de09-4a7b-a45a-000a68fa09a7",
         "wiring_pi": -1
       },
       "descr": "The Ground pins on the Raspberry Pi are all electrically connected, so it doesn't matter which one you use if you're wiring up a voltage supply. Generally the one that's most convenient or closest to the rest of your connections is tidier and easier, or alternatively the one closest to the supply pin that you use. For example, it's a good idea to use Physical Pin 17 for 3v3 and Physical Pin 25 for ground when using the SPI connections, as these are right next to the important pins for SPI0.",
       "funcs": [
         "power"
       ],
-      "title": "Ground"
+      "title": "Ground",
+      "uuid": "7ce267b1-f2a7-48b2-a448-4b29278c916b"
     },
     "header_col": 2,
     "header_row": 15,
@@ -506,9 +554,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "6",
-        "physical_board": "31",
-        "wiring_pi": "22"
+        "gpio_bcm": 6,
+        "physical_board": 31,
+        "uuid": "5e6acf53-06c9-4f2f-a3a8-9bd230df4fb0",
+        "wiring_pi": 22
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -519,7 +568,8 @@
         "AVEIN VID2",
         "JTAG RTCK"
       ],
-      "title": "GPIO 6"
+      "title": "GPIO 6",
+      "uuid": "8d60722b-8312-450f-89ad-282a359d32df"
     },
     "header_col": 1,
     "header_row": 16,
@@ -529,9 +579,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "12",
-        "physical_board": "32",
-        "wiring_pi": "26"
+        "gpio_bcm": 12,
+        "physical_board": 32,
+        "uuid": "d0f8b56f-5174-4ccf-9dba-38820ff96410",
+        "wiring_pi": 26
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -542,7 +593,8 @@
         "AVEIN VID8",
         "JTAG TMS"
       ],
-      "title": "GPIO 12 (PWM0)"
+      "title": "GPIO 12 (PWM0)",
+      "uuid": "46498660-65a0-4e7c-b091-a9972b423fb2"
     },
     "header_col": 2,
     "header_row": 16,
@@ -552,9 +604,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "13",
-        "physical_board": "33",
-        "wiring_pi": "23"
+        "gpio_bcm": 13,
+        "physical_board": 33,
+        "uuid": "4cebb513-66f8-4d78-88c5-cd859e0a7aa8",
+        "wiring_pi": 23
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -565,7 +618,8 @@
         "AVEIN VID9",
         "JTAG TCK"
       ],
-      "title": "GPIO 13 (PWM1)"
+      "title": "GPIO 13 (PWM1)",
+      "uuid": "5fc188f8-f89a-4f6d-abaf-0b5908c55824"
     },
     "header_col": 1,
     "header_row": 17,
@@ -577,13 +631,15 @@
       "boardmap": {
         "gpio_bcm": -1,
         "physical_board": -1,
+        "uuid": "2fe50a4f-467d-4c9b-bafe-3b9d32f891a2",
         "wiring_pi": -1
       },
       "descr": "The Ground pins on the Raspberry Pi are all electrically connected, so it doesn't matter which one you use if you're wiring up a voltage supply. Generally the one that's most convenient or closest to the rest of your connections is tidier and easier, or alternatively the one closest to the supply pin that you use. For example, it's a good idea to use Physical Pin 17 for 3v3 and Physical Pin 25 for ground when using the SPI connections, as these are right next to the important pins for SPI0.",
       "funcs": [
         "power"
       ],
-      "title": "Ground"
+      "title": "Ground",
+      "uuid": "04b89d76-367e-4564-99a4-4a173d51c1cd"
     },
     "header_col": 2,
     "header_row": 17,
@@ -593,9 +649,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "19",
-        "physical_board": "35",
-        "wiring_pi": "24"
+        "gpio_bcm": 19,
+        "physical_board": 35,
+        "uuid": "0edb216a-547d-4b54-9388-56bc80fe0083",
+        "wiring_pi": 24
       },
       "descr": "GPIO 19 is used by PCM to provide a frame-sync signal to an external audio device such as a DAC chip.",
       "funcs": [
@@ -606,7 +663,8 @@
         "SPI1 MISO",
         "PWM1"
       ],
-      "title": "GPIO 19 (PCM Frame Sync)"
+      "title": "GPIO 19 (PCM Frame Sync)",
+      "uuid": "3bd064d6-fb60-4ab7-bb0e-6cfb35e6bbe1"
     },
     "header_col": 1,
     "header_row": 18,
@@ -616,9 +674,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "16",
-        "physical_board": "36",
-        "wiring_pi": "27"
+        "gpio_bcm": 16,
+        "physical_board": 36,
+        "uuid": "f479e4d9-0cb2-4143-a48a-bda29084c5c4",
+        "wiring_pi": 27
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -629,7 +688,8 @@
         "SPI1 CE2",
         "UART1 CTS"
       ],
-      "title": "GPIO 16"
+      "title": "GPIO 16",
+      "uuid": "d8b45b67-4aa5-40ba-843a-43f8de6f2e5f"
     },
     "header_col": 2,
     "header_row": 18,
@@ -639,9 +699,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "26",
-        "physical_board": "37",
-        "wiring_pi": "25"
+        "gpio_bcm": 26,
+        "physical_board": 37,
+        "uuid": "06207180-3ec0-4ead-b477-8c83f1ff880f",
+        "wiring_pi": 25
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -651,7 +712,8 @@
         "SD1 DAT2",
         "JTAG TDI"
       ],
-      "title": "GPIO 26"
+      "title": "GPIO 26",
+      "uuid": "d1816d4f-3b7d-4370-af29-652f2d23475c"
     },
     "header_col": 1,
     "header_row": 19,
@@ -661,9 +723,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "20",
-        "physical_board": "38",
-        "wiring_pi": "28"
+        "gpio_bcm": 20,
+        "physical_board": 38,
+        "uuid": "0980e97e-d29f-44e1-817a-6835f0527b27",
+        "wiring_pi": 28
       },
       "descr": "GPIO 20 is used by PCM to as a data input from an audio device such as an I2C microphone.",
       "funcs": [
@@ -674,7 +737,8 @@
         "SPI1 MOSI",
         "GPCLK0"
       ],
-      "title": "GPIO 20 (PCM Data-In)"
+      "title": "GPIO 20 (PCM Data-In)",
+      "uuid": "fb8ba030-5298-4953-9e2b-f682ca51f920"
     },
     "header_col": 2,
     "header_row": 19,
@@ -686,13 +750,15 @@
       "boardmap": {
         "gpio_bcm": -1,
         "physical_board": -1,
+        "uuid": "97397d8d-74b5-4b4c-a4f1-eaea005fa920",
         "wiring_pi": -1
       },
       "descr": "The Ground pins on the Raspberry Pi are all electrically connected, so it doesn't matter which one you use if you're wiring up a voltage supply. Generally the one that's most convenient or closest to the rest of your connections is tidier and easier, or alternatively the one closest to the supply pin that you use. For example, it's a good idea to use Physical Pin 17 for 3v3 and Physical Pin 25 for ground when using the SPI connections, as these are right next to the important pins for SPI0.",
       "funcs": [
         "power"
       ],
-      "title": "Ground"
+      "title": "Ground",
+      "uuid": "f3be5bcd-274a-4ebf-b32f-9667e50d9aed"
     },
     "header_col": 1,
     "header_row": 20,
@@ -704,13 +770,15 @@
       "boardmap": {
         "gpio_bcm": -1,
         "physical_board": -1,
+        "uuid": "ff8eba09-a215-476a-b234-0bd512c40b7c",
         "wiring_pi": -1
       },
       "descr": "The 5v power pins are connected directly to the Pi's power input and will capably provide the full supply current of your mains adaptor, minus that used by the Pi itself. With a decent power supply, such as the official Pi adaptor, you can expect to pull about 1.5A. This varies by Pi model and adapter used. Devices that require a high current- such as LED panels, long LED strips or motors- should use an external power supply.",
       "funcs": [
         "power"
       ],
-      "title": "5v Power"
+      "title": "5v Power",
+      "uuid": "f6ba901b-f42c-4c17-9bf6-da922f6b7585"
     },
     "header_col": 2,
     "header_row": 2,
@@ -720,9 +788,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "21",
-        "physical_board": "40",
-        "wiring_pi": "29"
+        "gpio_bcm": 21,
+        "physical_board": 40,
+        "uuid": "18dfd7bd-56b2-46f8-a8ae-e37171c52b36",
+        "wiring_pi": 29
       },
       "descr": "GPIO 21 is used by PCM to provide a data output signal to an external audio device such as a DAC chip.",
       "funcs": [
@@ -733,7 +802,8 @@
         "SPI1 SCLK",
         "GPCLK1"
       ],
-      "title": "GPIO 21 (PCM Data-Out)"
+      "title": "GPIO 21 (PCM Data-Out)",
+      "uuid": "ee9266ee-b745-4a47-afb4-13355d2efe82"
     },
     "header_col": 2,
     "header_row": 20,
@@ -743,9 +813,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "3",
-        "physical_board": "5",
-        "wiring_pi": "9"
+        "gpio_bcm": 3,
+        "physical_board": 5,
+        "uuid": "f339477e-b763-426d-97d4-4efbbe3c079b",
+        "wiring_pi": 9
       },
       "descr": "SCL includes a fixed, 1.8 k\u00e2\u0084\u00a6 pull-up to 3.3v, which means this pin is not suitable for use as a general purpose IO where no pull-up resistor is desired.",
       "funcs": [
@@ -755,7 +826,8 @@
         "AVEOUT HSYNC",
         "AVEIN HSYNC"
       ],
-      "title": "GPIO 3 (I2C Clock)"
+      "title": "GPIO 3 (I2C Clock)",
+      "uuid": "03a10e37-5f5d-486d-96d7-9fc323120253"
     },
     "header_col": 1,
     "header_row": 3,
@@ -767,13 +839,15 @@
       "boardmap": {
         "gpio_bcm": -1,
         "physical_board": -1,
+        "uuid": "74a3bb28-12c8-457c-a04a-278ab09e36a8",
         "wiring_pi": -1
       },
       "descr": "The Ground pins on the Raspberry Pi are all electrically connected, so it doesn't matter which one you use if you're wiring up a voltage supply. Generally the one that's most convenient or closest to the rest of your connections is tidier and easier, or alternatively the one closest to the supply pin that you use. For example, it's a good idea to use Physical Pin 17 for 3v3 and Physical Pin 25 for ground when using the SPI connections, as these are right next to the important pins for SPI0.",
       "funcs": [
         "power"
       ],
-      "title": "Ground"
+      "title": "Ground",
+      "uuid": "50e3dd87-f774-47ff-b70f-7fb26f1fd9cf"
     },
     "header_col": 2,
     "header_row": 3,
@@ -783,9 +857,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "4",
-        "physical_board": "7",
-        "wiring_pi": "7"
+        "gpio_bcm": 4,
+        "physical_board": 7,
+        "uuid": "c43dad6e-4a88-44a3-8b0c-c4e01471d8ae",
+        "wiring_pi": 7
       },
       "descr": "General Purpose (IO)",
       "funcs": [
@@ -796,7 +871,8 @@
         "AVEIN VID0",
         "JTAG TDI"
       ],
-      "title": "GPIO 4"
+      "title": "GPIO 4",
+      "uuid": "c5e86526-0d2a-4351-8db1-d9c5f79348a4"
     },
     "header_col": 1,
     "header_row": 4,
@@ -806,9 +882,10 @@
   {
     "data": {
       "boardmap": {
-        "gpio_bcm": "14",
-        "physical_board": "8",
-        "wiring_pi": "15"
+        "gpio_bcm": 14,
+        "physical_board": 8,
+        "uuid": "2eda7310-2182-4bab-a421-f37f5e96c573",
+        "wiring_pi": 15
       },
       "descr": "This pin doubles up as the UART transmit pin, TX. It's also commonly known as Serial and, by default, will output a Console from your Pi that, with a suitable Serial cable, you can use to control your Pi via the command-line. The UART pins are useful for setting up a headless Pi (a Pi without a screen) and getting it connected to a network. UART can be used to talk to Serial GPS modules or sensors such as the PM5003, but you must make sure you disable the Serial Console in raspi-config first. On the Pi 3 and 4 the UART is, by default, used for Bluetooth and you may need to add dtoverlay=miniuart-bt to /boot/config.txt to achieve a stable. Learn more about UART Raspberry Pi UART documentation",
       "funcs": [
@@ -819,7 +896,8 @@
         "AVEIN VID10",
         "UART1 TXD"
       ],
-      "title": "GPIO 14 (UART Transmit)"
+      "title": "GPIO 14 (UART Transmit)",
+      "uuid": "0d3002c1-77d9-484f-8ae0-6c4d860a5cfd"
     },
     "header_col": 2,
     "header_row": 4,
@@ -831,13 +909,15 @@
       "boardmap": {
         "gpio_bcm": -1,
         "physical_board": -1,
+        "uuid": "14059df2-4d8a-4cbc-95f6-c81fea18455d",
         "wiring_pi": -1
       },
       "descr": "The Ground pins on the Raspberry Pi are all electrically connected, so it doesn't matter which one you use if you're wiring up a voltage supply. Generally the one that's most convenient or closest to the rest of your connections is tidier and easier, or alternatively the one closest to the supply pin that you use. For example, it's a good idea to use Physical Pin 17 for 3v3 and Physical Pin 25 for ground when using the SPI connections, as these are right next to the important pins for SPI0.",
       "funcs": [
         "power"
       ],
-      "title": "Ground"
+      "title": "Ground",
+      "uuid": "44ac6934-7006-42ba-a5e8-b49775a7a574"
     },
     "header_col": 1,
     "header_row": 5,
