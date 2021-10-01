@@ -210,7 +210,7 @@ class PiInfo(object):
                             phys_key, gpio_key, wiringpi_key
                         ],
                         [
-                            phys_val, gpio_val, wiringpi_val
+                            int(phys_val), int(gpio_val), int(wiringpi_val)
                         ]
                     )
                 )
