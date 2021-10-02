@@ -37,8 +37,8 @@ import json
 import requests
 import re
 from pymongo import ReadPreference
-from pylibs.schema.user_schemas import System, Relay, Pin
-from pylibs.schema.user_schemas import SystemGraphQL, RelayGraphQL, PinDataGraphQL, PinMapGraphQL,PinGraphQL, Query, GraphQLFactory
+from pylibs.schema.orm_schemas import System, Relay, Pin
+from pylibs.schema.orm_schemas import SystemGraphQL, RelayGraphQL, PinDataGraphQL, PinMapGraphQL,PinGraphQL, Query, GraphQLFactory
 from pylibs.forms.pi_server import RelayForm
 from flask_graphql import GraphQLView
 
