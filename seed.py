@@ -32,7 +32,7 @@ from config.settings import Config
 from backend.config import DevelopmentConfig, ProductionConfig
 from pylibs.pi import PiInfo, PiInfoEncoder
 from pylibs.relay import RelayInfo
-from pylibs.schema.default_schemas import DefaultSchemas, SchemaFactory
+from pylibs.schema.default_schemas import StaticSchemas, SchemaFactory
 
 # mappings for writing files
 
@@ -218,14 +218,14 @@ def get_schema_template(schema_template_name: str = None) -> dict:
     if schema_template_name is None:
         schema_template_name = 'all'
     if schema_template_name == 'all':
-        defaults = DefaultSchemas()
+        defaults = StaticSchemas()
         schema = {
             "system": defaults.system,
             "gpios": defaults.gpios
         }
     else:
         # TODO: find a better way to do this, setter and getter functions?
-        schema = DefaultSchemas().__getattribute__(schema_template_name)
+        schema = StaticSchemas().__getattribute__(schema_template_name)
     return schema
 
 def compile_schema_template(schema_template: dict = None) -> dict:
@@ -346,6 +346,7 @@ def mongo_create_static_database(args: Namespace, client: MongoClient) -> None:
             elif args.collection_name in ['relays']:
                 relay_info = RelayInfo()
                 relaydict = relay_info.data
+                print(relaydict)
                 collection = _create_collection(args, client, 'static', args.collection_name)
                 collection.insert_many(relaydict)
         else:
