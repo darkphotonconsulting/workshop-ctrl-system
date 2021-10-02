@@ -12,7 +12,25 @@ from mongoengine import (
     BooleanField
 )
 
-class DefaultSchemas(object):
+MONGO_STRUCTURE = {
+    'static': {
+        'system': 'static-system',
+        'gpios': 'static-gpios',
+        'relays': 'static-relays',
+        'all': ['static-system', 'static-gpios']
+    },
+    'dynamic': {
+        'system_memory_stats': 'dynamic-system-memory-statistics',
+        'system_net_stats': 'dynamic-system-network-statistics',
+        'system_cpu_stats': 'dynamic-system-memory-statistics'
+    }
+}
+
+class DynamicSchemas(object):
+    system_memory_stats = {}
+    system_net_stats = {}
+    system_cpu_stats = {}
+class StaticSchemas(object):
     """Default Mongo DB static system schemas
 
     Args:
