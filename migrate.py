@@ -4,6 +4,7 @@ from json import JSONEncoder
 import uuid
 
 from pymongo import collection
+from bson.objectid import ObjectId
 #from pymongo import database, collec
 from pylibs.schema.migration import SchemaMigrationEngine
 from pylibs.logging.loginator import Loginator
@@ -26,10 +27,15 @@ stop_codes= {
 
 
 class MigrationEncoder(json.JSONEncoder):
-    """
+    """JSON Encoder for non-standard data types found in Mongo schemas and obects (eg, object ids, UUIDs, etc)
+
+    Inherits:
+        json.JSONEncoder
     """
     def default(self, object):
         if isinstance(object, uuid.UUID):
+            return str(object)
+        if isinstance(object, ObjectId):
             return str(object)
 
         return JSONEncoder.default(self, object)
@@ -68,12 +74,15 @@ conn_args.add_argument('--mongo-password',
     action='store',
     help='MongoDB Administrative Password'
 )
-
-
 action_args.add_argument('--drop-existing',
     action='store_true',
     required=False,
     help='Performs drops on Databases and Collections before recreating them'
+)
+action_args.add_argument('--create-if-not-exist',
+    action='store_true',
+    required=False,
+    help='If a database or collection does not exist, create it first, the [--database-name <database>] and [--collection-name <collection>] arguments should be set appropriately'
 )
 action_args.add_argument('--debug',
     action='store_true',
@@ -81,14 +90,11 @@ action_args.add_argument('--debug',
     help=
     'Debugging messages enabled on supporting operations'
 )
-
 action_args.add_argument('--use-default-schemas',
     action='store_true',
     required=False,
     help='Collections will be created using the default schema items [system, gpios, relays], the --collection-name MUST be system, gpios, or relays'
 )
-
-
 action_args.add_argument('--database-name',
     action='store',
     required=False,
@@ -112,6 +118,11 @@ action_args.add_argument('--list-collections',
     help='Lists MongoDB Collection objects'
 )
 action_args.add_argument('--list-items',
+    action='store_true',
+    required=False,
+    help='Lists items in a MongoDB Collection'
+)
+action_args.add_argument('--count-items',
     action='store_true',
     required=False,
     help='Lists items in a MongoDB Collection'
@@ -193,19 +204,60 @@ def list_items(a: Namespace):
     engine = get_engine(a)
     if a.database_name == '':
         logger.warning(
-            f"please set the [--database-name] with a valid value to use --create-collection"
+            f"please set the [--database-name <database_name>] with a valid value to use [--list-items]"
         )
         parser.print_help()
         exit(stop_codes['ARGUMENTS'])
 
     if a.collection_name == '':
         logger.warning(
-            f"please set the [--collection-name] with a valid value to use --create-collection"
+            f"please set the [--collection-name <collection_name>] with a valid value to use [--list-items]"
         )
         parser.print_help()
         exit(stop_codes['ARGUMENTS'])
-    
-    print()
+    items = engine.list_items(
+        database_name=a.database_name,
+        collection_name=a.collection_name
+    )
+    items_size = len(items)
+    if items_size == 0:
+        logger.warning(
+            f"collection {a.collection_name} in database {a.database_name} contains 0 items"
+        )
+    elif items_size > 0:
+        print(json.dumps(
+            items,
+            indent=2,
+            cls=MigrationEncoder
+        ))
+
+def count_items(a: Namespace) -> dict:
+    engine = get_engine(a)
+    if a.database_name == '':
+        logger.warning(
+            f"please set the [--database-name <database_name>] with a valid value to use [--list-items]"
+        )
+        parser.print_help()
+        exit(stop_codes['ARGUMENTS'])
+
+    if a.collection_name == '':
+        logger.warning(
+            f"please set the [--collection-name <collection_name>] with a valid value to use [--list-items]"
+        )
+        parser.print_help()
+        exit(stop_codes['ARGUMENTS'])
+    items = engine.list_items(database_name=a.database_name,
+                              collection_name=a.collection_name)
+    items_size = len(items)
+    return print(
+        json.dumps(
+            {
+                "items": items_size
+            },
+            indent=2,
+            cls=MigrationEncoder
+        )
+    )
 
 
 def create_database(a: Namespace):
@@ -240,17 +292,54 @@ def create_collection(a: Namespace):
                 f"if using [--load-default-schemas] the [--collection-name] argument value MUST be one of 'system', 'relays' or 'gpios'"
             )
             exit(stop_codes['ARGUMENTS'])
+
+
+    #if engine.database_exists(database_name=a.database_name): #database exists
     if engine.create_collection(
         database_name=a.database_name,
         collection_name=a.collection_name,
         custom_schema=None,
         use_schema=a.use_default_schemas,
         drop=a.drop_existing,
-        debug=a.debug
-    ):
-        exit(stop_codes['SUCCESS'])
-    else:
-        exit(stop_codes['EXECUTION_ERROR'])
+        create_if_not_exist=a.create_if_not_exist,
+        debug=a.debug): #collection creation successful
+            logger.info(
+                f"successfully created collection {a.collection_name} in database {a.database_name}"
+            )
+    else: #collection creation failed
+        logger.error(
+            f"failed to create collection {a.collection_name} in database {a.database_name}"
+        )
+    # else: # database does not exist
+    #     logger.warning(f"you are trying to create a collection in a database which does not exist")
+    #     if a.create_if_not_exist:
+    #         logger.info(f"the [--create-if-not-exist] flag was enabled")
+    #         if engine.create_database(
+    #             database_name=a.database_name
+    #         ):
+    #             logger.info(f"successfully created the database [{a.database_name}] for your collection [{a.collection_name}]")
+    #             if engine.create_collection(
+    #                 database_name=a.database_name,
+    #                 collection_name=a.collection_name,
+    #                 custom_schema=None,
+    #                 use_schema=a.use_default_schemas,
+    #                 drop=a.drop_existing,
+    #                 debug=a.debug): #collection creation successful
+    #                 logger.info(
+    #                     f"successfully created collection {a.collection_name} in database {a.database_name}"
+    #                 )
+    #             else: #collection creation failed
+    #                 logger.error(
+    #                     f"failed to create collection {a.collection_name} in database {a.database_name}"
+    #                 )
+    #                 exit(stop_codes['EXECUTION_ERROR'])
+    #         else:
+    #             logger.error(f"not able to create the database [{a.database_name}] for your collection [{a.collection_name}]")
+    #             exit(stop_codes['EXECUTION_ERROR'])
+    #     else:
+    #         logger.warning(f"Please use the [--create-if-not-exist] flag to create objects which don't exist first, eg a database")
+    #         parser.print_help()
+    #         exit(stop_codes['ARGUMENTS'])
 
 
 def drop_database(a: Namespace):
@@ -296,6 +385,13 @@ def main(a: Namespace):
     if a.list_collections:
         list_collections(a)
 
+
+    if a.list_items:
+        list_items(a)
+
+    if a.count_items:
+        count_items((a))
+
     if a.create_database:
         create_database(a)
 
@@ -307,6 +403,7 @@ def main(a: Namespace):
 
     if a.drop_collection:
         drop_collection(a)
+
 
 
 # run as a script called from the shell
