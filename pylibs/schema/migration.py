@@ -5,6 +5,7 @@ import logging
 from copy import copy
 
 from pymongo import collection
+from pymongo import database
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 libs = "/".join(current_dir.split('/')[0:-1])
@@ -15,8 +16,9 @@ from pymongo import (
     MongoClient, )
 from pymongo.database import Database
 from pymongo.collection import Collection
-from pylibs.schema.default_schemas import StaticSchemas, SchemaFactory
-
+from pylibs.schema.default_schemas import StaticSchemas, DynamicSchemas, SchemaFactory
+from pylibs.coders.decode import SchemaTemplateDecoder 
+from pylibs.coders.encode import SchemaTemplateEncoder
 from pylibs.constants.constants import FILE_MAP, MONGO_STRUCTURE
 from backend.config import BaseConfig
 
@@ -407,6 +409,15 @@ class SchemaMigrationEngine():
         validator['$jsonSchema']['properties'] = schema
         return validator
 
+    def __compile_schema_template_from_file(cls,
+        schema_template_file: str = None
+    ) -> dict:
+        factory = SchemaFactory()
+        validator = copy(factory.validator)
+        schema = factory.compile_schema_template_from_file(schema_template_path=schema_template_file)
+        validator['$jsonSchema']['properties'] = schema 
+        return validator
+
     def __init__(self,
         mongo_host: str,
         mongo_port: int,
@@ -451,7 +462,27 @@ class SchemaMigrationEngine():
             collection_name=collection_name,
         )
 
-
+    def get_collection(self,
+        database_name: str = None,
+        collection_name: str = None,
+    ) -> Collection:
+        client = self.client
+        if self.__class__.__collection_exists(
+            client=client, 
+            database_name=database_name, 
+            collection_name=collection_name):
+            db = client[database_name]
+            collection = self.__class__.__get_collection(
+                client=client, 
+                database_name=database_name, 
+                collection_name=collection_name
+            )
+            return collection
+        else:
+            self.__class__.logger.error(f"The collection [{collection_name}] in database [{database_name}] does not exist to get")
+            self.__Class__.logger.warning(f"You can list collections or databases with [--list-collections --database-name <db>] or [--list-databases] respectively")
+            return False
+    
     def get_database(self,
         database_name: str = None
     ) -> Database:
