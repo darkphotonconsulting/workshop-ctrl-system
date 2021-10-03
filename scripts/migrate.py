@@ -1,3 +1,10 @@
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+libs = "/".join(current_dir.split('/')[0:-1])
+sys.path.append(libs)
+
 import logging
 import json
 from json import JSONEncoder
@@ -303,9 +310,9 @@ def create_collection(a: Namespace):
         drop=a.drop_existing,
         create_if_not_exist=a.create_if_not_exist,
         debug=a.debug): #collection creation successful
-            logger.info(
-                f"successfully created collection {a.collection_name} in database {a.database_name}"
-            )
+        logger.info(
+            f"successfully created collection {a.collection_name} in database {a.database_name}"
+        )
     else: #collection creation failed
         logger.error(
             f"failed to create collection {a.collection_name} in database {a.database_name}"

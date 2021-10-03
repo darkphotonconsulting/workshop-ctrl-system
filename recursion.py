@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 import json
-from pylibs.schema.default_schemas import DefaultSchemas
+from pylibs.schema.default_schemas import StaticSchemas
 
-schemas = DefaultSchemas()
+schemas = StaticSchemas()
 gpios = schemas.gpios
 with open('data/raspberrypi.json','r') as file_data:
     data = json.load(file_data)
