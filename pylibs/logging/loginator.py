@@ -20,14 +20,14 @@ class CustomFormatter(logging.Formatter):
     bold_red = "\u001b[38;5;196m"
     #reset = "\x1b[0m"
     reset = "\u001b[0m"
-    format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
+    format = "executionTime: [%(asctime)s] - moduleName: [%(name)s] - logLevel: [%(levelname)s] - msgContents: %(message)s lineOfCode: (%(filename)s:%(lineno)d)"
 
     FORMATS = {
-        logging.DEBUG: "\U0001F527 " + grey + "...... " + format + reset,
-        logging.INFO: "\U0001F37A " + blue + "...... " + format + reset,
-        logging.WARNING: "\U0001F449 " + yellow + "...... " +  format + reset,
-        logging.ERROR: "\U0001F53A " + red + "...... " + format + reset,
-        logging.CRITICAL: "\U0001F92F " + bold_red + "...... " + format + reset
+        logging.DEBUG: "\U0001F527 " + grey + "> "*10 + format + reset,
+        logging.INFO: "\U0001F37A " + blue + "> "*10 + format + reset,
+        logging.WARNING: "\U0001F449 " + yellow + "> "*10 +  format + reset,
+        logging.ERROR: "\U0001F53A " + red + "> "*10 + format + reset,
+        logging.CRITICAL: "\U0001F92F " + bold_red + "> "*10 + format + reset
     }
 
     def format(self, record):
