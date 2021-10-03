@@ -1,5 +1,19 @@
 import json
+import yaml
+import csv
 import bson
+import os
+import sys
+import logging
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+libs = "/".join(current_dir.split('/')[0:-2])
+sys.path.append(libs)
+
+from pylibs.logging.loginator import Loginator
+from pylibs.coders.encode import SchemaTemplateEncoder
+from pylibs.coders.decode import SchemaTemplateDecoder
+
 from copy import copy
 from pymongo.database import Database
 from mongoengine import (
@@ -11,6 +25,7 @@ from mongoengine import (
     ListField,
     BooleanField
 )
+
 
 MONGO_STRUCTURE = {
     'static': {
@@ -26,10 +41,25 @@ MONGO_STRUCTURE = {
     }
 }
 
+
 class DynamicSchemas(object):
-    system_memory_stats = {}
-    system_net_stats = {}
-    system_cpu_stats = {}
+    system_memory_stats = {
+        "total": int,
+        "available": int,
+        "used": int,
+        "active": int,
+        "inactive": int,
+        "buffers": int,
+        "cached": int,
+        "shared": int,
+        "slab": int
+    }
+    system_net_stats = {
+
+    }
+    system_cpu_stats = {
+
+    }
 class StaticSchemas(object):
     """Default Mongo DB static system schemas
 
@@ -90,8 +120,10 @@ class StaticSchemas(object):
 
 
 class SchemaFactory(object):
-    """Generic schema logic. 
-    Compiles a mongodb compliant schema validator reference
+    """Compiles MongoDB validation schemas per spec defined here https://docs.mongodb.com/manual/core/schema-validation/
+    - Can compile schemas from default defined schemas (StaticSchemas and DynamicSchemas)
+    - Can compile a schema from file sources
+    - Export Schema templates, and schemas to JSON, YAML, etc. for review or usage outside of this program
 
     Args:
         None
@@ -100,6 +132,9 @@ class SchemaFactory(object):
         SchemaFactory
     """
 
+    logger = logging.getLogger('SchemaFactory')
+    loginator = Loginator(logger=logger)
+    logger = loginator.logger
     nested = False
     last_seen = None
     def __init__(self):
@@ -110,6 +145,221 @@ class SchemaFactory(object):
                 "properties": {}
             }
         }
+
+
+    def pretty_print(self, it: dict) -> None:
+        print(json.dumps(it, indent=2, cls=SchemaTemplateEncoder))
+
+    @classmethod
+    def load_schema_template_from_file(cls,
+        schema_template_path: str = None,
+    ) -> dict:
+        schema_template = {}
+        if os.path.exists(schema_template_path):
+            with open(schema_template_path) as file:
+                schema_template = json.load(
+                    file,
+                    cls=SchemaTemplateDecoder
+                )
+                return schema_template
+
+        cls.logger.warning(f"your file did not exist, sorry, I compiled a bare bones schema for you")
+        return schema_template
+        #print()
+
+    def compile_schema_template_from_file(self,
+        schema_template_path: str = None
+    ) -> dict:
+        schema_template = self.__class__.load_schema_template_from_file(schema_template_path=schema_template_path)
+        factory = self
+        validator = copy(factory.validator)
+        schema = factory.generate_schema(schema_template)
+        validator['$jsonSchema']['properties'] = schema
+        return validator
+
+    def write_compiled_schema_to_file(self,
+        schema_file_path: str = None,
+        schema_type: str = None,
+        schema_template_name: str = None,
+    ) -> bool:
+        schema = self.compile_default_schema_template(
+            schema_type=schema_type,
+            schema_template_name=schema_template_name
+        )
+        path_contains_slashes = len(schema_file_path.split('/'))
+        self.__class__.logger.info(f"writing schema [{schema_template_name}] type [{schema_type}] to [{schema_file_path}]")
+        if path_contains_slashes > 1:
+            if os.path.exists(
+                os.path.dirname(
+                    schema_file_path
+                )
+            ):
+                self.__class__.logger.info(f"writing your file to {schema_file_path}")
+                with open(schema_file_path, 'w') as file:
+                    file.write(
+                        json.dumps(schema, indent=2,)
+                    )
+            else:
+                self.__class__.logger.warning(f"The provided path can't be written to because the parent directory does not exist")
+                self.__class__.logger.warning(f"Since you are dumping a __schema__ ... try the path './schemas/yourfile.json' ")
+                return False
+            #file created?
+            if os.path.exists(schema_file_path):
+                self.__class__.logger.info(f"The schema was successfully dumped to file")
+                return True
+            else:
+                self.__class__.logger.error((f"Dumping the schema to file failed"))
+                return False
+        else:
+            self.__class__.logger.info(f"writing your file to {os.path.join('schemas', schema_file_path)}")
+            with open( os.path.join('schemas', schema_file_path)) as file:
+                file.write(
+                    json.dumps(schema, indent=2)
+                )
+
+            if os.path.exists(os.path.join('schemas', schema_file_path)): # file was created
+                self.__class__.logger.info(f"The schema was successfully dumped to file")
+                return True
+            else: # file creation failed
+                self.__class__.logger.error((f"Dumping the schema to file failed"))
+                return False
+        #print('fin')
+
+    def write_default_schema_template_to_file(self,
+        schema_type: str = None,
+        schema_template_name: str = None,
+        schema_template_file_path: str = None,
+    ) -> bool:
+        schema_template = self.get_default_schema_template(
+            schema_type=schema_type,
+            schema_template_name=schema_template_name
+        )
+        path_contains_slashes = len(schema_template_file_path.split('/'))
+        if path_contains_slashes > 1: # provided value is a path to file
+            if os.path.exists(
+                os.path.dirname(
+                    schema_template_file_path
+                )
+            ): # the parent folder exists
+                self.__class__.logger.info(f"writing your schema to file {schema_template_file_path}")
+                with open(schema_template_file_path, 'w') as file:
+                    file.write(
+                        json.dumps(schema_template, indent=2, cls=SchemaTemplateEncoder)
+                    )
+                if os.path.exists(schema_template_file_path): # file was created
+                    self.__class__.logger.info(f"The schema template was successfully dumped to file")
+                    return True
+                else: # file creation failed
+                    self.__class__.logger.error(f"The schema template dump failed")
+                    return False
+            else: # the parent folder does not exist
+                self.__class__.logger.error(f"The requested parent folder does not exist")
+                return False
+        elif path_contains_slashes == 1: # provided value is just a file
+            self.__class__.logger.info(f"writing your schema template to {os.path.join('schemas', schema_template_file_path)}")
+            with open( os.path.join( 'schemas', schema_template_file_path), 'w') as file:
+                file.write(
+                    json.dumps(schema_template, indent=2, cls=SchemaTemplateEncoder)
+                )
+            if os.path.exists(
+                os.path.join('schemas', schema_template_file_path)
+            ): # file was created
+                self.__class__.logger.info(f"succesfully dumped schema template to file")
+                return True
+            else:
+                self.__class__.logger.info(f"failed to dump schema template to file")
+                return False
+
+
+    @classmethod
+    def get_default_schema_template(cls,
+            schema_type: str = None,
+            schema_template_name: str = None
+    ) -> dict:
+        """Returns schema from default schemas
+
+        Args:
+            schema_template_name ([str]): The name of the schema template 
+
+        Returns:
+            [dict]: Python dictionary representation of mongo schema template
+        """
+        schema = {}
+        static_defaults = StaticSchemas()
+        dynamic_defaults = DynamicSchemas()
+        if schema_type is None:
+            schema_type = "static"
+
+        if schema_template_name is None:
+            schema_template_name = 'system'
+
+        if schema_type == 'static':
+            defaults = static_defaults
+            if schema_template_name == 'all':
+                schema = {
+                    "system": defaults.system,
+                    "gpios": defaults.gpios,
+                    "relays": defaults.system
+                }
+            else:
+                # TODO: find a better way to do this, setter and getter functions?
+                schema = defaults.__getattribute__(schema_template_name)
+            return schema
+        elif schema_type == 'dynamic':
+            defaults = dynamic_defaults
+            if schema_template_name == 'all':
+                schema = {
+                    "system_memory_stats": defaults.system_memory_stats,
+                    "system_net_stats": defaults.system_net_stats,
+                    "system_cpu_stats": defaults.system_cpu_stats
+                }
+            else:
+                # TODO: find a better way to do this, setter and getter functions?
+                schema = defaults.__getattribute__(schema_template_name)
+            return schema
+
+
+    def compile_default_schema_template(self,
+        schema_type: str = None,
+        schema_template_name: str = None
+    ) -> dict:
+        """Compiles a Mongo DB compliant validator schema from the user selected schema template object, 
+        This is used when creating the initial database resources in MongoDB and defines the data types of the attributes within each collection
+
+        Args:
+            schema_template dict: The dict reprsentation of the mongo schema template
+
+        Returns:
+            dict: compiled validator schema python object
+        """
+        schema_template = self.__class__.get_default_schema_template(
+            schema_type=schema_type,
+            schema_template_name=schema_template_name
+        )
+        factory = self
+        validator = copy(factory.validator)
+        schema = factory.generate_schema(schema_template)
+        validator['$jsonSchema']['properties'] = schema
+        return validator
+    ####
+
+    def list_default_schemas(self,
+    ) -> list:
+        results = []
+        for klass in [StaticSchemas, DynamicSchemas]:
+            klass_name = klass.__name__
+            klass_keys = [k for k in list(klass.__dict__.keys()) if not k.startswith('__')]
+            results.append(
+                { klass_name: klass_keys}
+            )
+        return results
+
+    def print_default_schemas(self,
+    ) -> None:
+        print(json.dumps(
+            self.list_default_schemas(),
+            indent=2
+        ))
 
 
     def generate_schema(self, schema_obj):
