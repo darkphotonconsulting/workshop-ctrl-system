@@ -64,7 +64,7 @@ class SchemaMigrationEngine():
         else:
             dbs = [db.get(key, None) for db in dbs]
             if None in dbs:
-                return f"the key {key} does not exist in a pymongo db object, valid keys are: ['name', 'sizeOnDisk', 'empty']"
+                return f"the key [{key}] does not exist in a pymongo db object, valid keys are: ['name', 'sizeOnDisk', 'empty']"
             else:
                 return dbs
 
@@ -84,7 +84,7 @@ class SchemaMigrationEngine():
         else:
             collections = [collection.get(key, None) for collection in collections]
             if None in collections:
-                return f"the key {key} does not exist in a pymongo collection object"
+                return f"the key [{key}] does not exist in a pymongo collection object"
             else:
                 return collections
 
@@ -114,10 +114,10 @@ class SchemaMigrationEngine():
     ) -> bool:
         dbs = [db for db in client.list_databases()]
         if database_name in [db['name'] for db in dbs]:
-            cls.logger.info(f"database {database_name} exists")
+            cls.logger.info(f"database [{database_name}] exists")
             return True
         else:
-            cls.logger.info(f"no database {database_name} exists")
+            cls.logger.info(f"no database [{database_name}] exists")
             return False
 
 
@@ -129,12 +129,116 @@ class SchemaMigrationEngine():
             collection['name'] for collection in db.list_collections()
         ]
         if collection_name in collections:
-            cls.logger.info(f"The collection {collection_name} exists in database {database_name}")
+            cls.logger.info(f"The collection [{collection_name}] exists in database [{database_name}]")
             return True
         else:
-            cls.logger.info(f"The collection {collection_name} does not exist in database {database_name}")
+            cls.logger.info(f"The collection [{collection_name}] does not exist in database [{database_name}]")
             return False
 
+
+    # database methods
+
+
+    @classmethod
+    def __get_database(cls,
+        client: MongoClient,
+        database_name: str
+    ) -> Database:
+        if cls.__database_exists(
+            client=client,
+            database_name=database_name,
+        ): #database exists
+            cls.logger.info(f"getting database [{database_name}]")
+            return client[database_name]
+        else: #database does not exist
+            cls.logger.error(f"can't get database [{database_name}] because it does not exist")
+            return False
+
+    @classmethod
+    def __get_collection(cls,
+        client: MongoClient,
+        database_name: str = None,
+        collection_name: str = None,                   
+    ) -> Collection:
+        if cls.__database_exists(
+            client=client,
+            database_name=database_name,
+            collection_name=collection_name
+        ): #database exists
+            db = cls.__get_database(
+                client=client,
+                database_name=database_name
+            )
+            if cls.__collection_exists(
+                client=client, 
+                database_name=database_name, 
+                collection_name=collection_name
+            ): #collection exists
+                return db.get_collection(name=collection_name)
+            else: # collection does not exist
+                cls.logger.error(
+                    f"can't get collection [{collection_name}] in database [{database_name}], the collection does not exist"
+                )
+                return False
+        else: # database does not exist
+            cls.logger.error(
+                f"can't get collection [{collection_name}] in database [{database_name}], the database does not exist"
+            )
+            return False
+
+    @classmethod
+    def __create_database(cls,
+        client: MongoClient,
+        database_name: str
+    ) -> bool:
+        dbs = [db['name'] for db in client.list_databases()]
+        if database_name not in dbs:
+            cls.logger.info(f"creating the requested database [{database_name}]")
+            db = client[database_name]
+            # creates a placeholder collection to ensure the db is saved in Mongo
+            db.create_collection(
+                name='__pymongo__',
+                validator={
+                    "$jsonSchema": {
+                        "bsonType": "object",
+                        "properties": {
+                            "foo": {
+                                "bsonType": "string"
+                            }
+                        }
+                    }
+                }
+            )
+        else:
+            cls.logger.warning(f"the database [{database_name}] already exists")
+            return False
+        # naïve verification the DB was created
+        if database_name in [db['name'] for db in client.list_databases()]:
+            cls.logger.info(f"the database [{database_name}] was successfully created")
+            return True
+        else:
+            cls.logger.error(f"the database [{database_name}] was not successfully created")
+            return False
+
+    @classmethod
+    def __drop_database(cls,
+        client: MongoClient,
+        database_name: str
+    ) -> bool:
+        dbs = [db for db in client.list_databases()]
+        if database_name in [db['name'] for db in dbs]:
+            cls.logger.info(f"dropping database [{database_name}]")
+            #db = client[database_name]
+            client.drop_database(database_name)
+        # recheck
+        if database_name not in [db['name'] for db in client.list_databases()]:
+            cls.logger.info(f"successfully dropped database [{database_name}]")
+            return True
+        else:
+            cls.logger.info(f"failed to drop database [{database_name}]")
+            return False
+
+            
     @classmethod
     def __create_collection(cls,
                             client: MongoClient,
@@ -142,6 +246,7 @@ class SchemaMigrationEngine():
                             collection_name: str = None,
                             custom_schema: dict = None,
                             use_schema: bool = False,
+                            create_if_not_exist: bool = False,
                             debug: bool = False,
     ) -> bool:
 
@@ -152,21 +257,27 @@ class SchemaMigrationEngine():
                 database_name=database_name
             )
             if cls.__collection_exists(client, database_name=database_name, collection_name=collection_name): # the collection already exists
-                cls.logger.warning(f"The collection {collection_name} already exists in {database_name}")
+                cls.logger.warning(f"The collection [{collection_name}] already exists in [{database_name}]")
                 return False
             else: # no such collection
                 if use_schema: # using a schema
                     cls.logger.debug(f"Using validation schemas") if debug else None
                     if custom_schema is None: # use default schema
-                        cls.logger.debug(f"Using default schema_template for [{collection_name}]") if debug else None
+                        cls.logger.debug(
+                            f"Using default schema_template for [{collection_name}]"
+                        ) if debug else None
                         schema_template = SchemaMigrationEngine.__get_schema_template(
-                            collection_name)
-                        cls.logger.debug(f"Compiling default schema..") if debug else None
+                            schema_template_name=collection_name)
+                        cls.logger.debug(
+                            f"Compiling default schema from {schema_template} .."
+                        ) if debug else None
                         schema = SchemaMigrationEngine.__compile_schema_template(
                             schema_template)
                     else: # use provided schema
-                        cls.logger.debug(f"Using custom schema") if debug else None
                         schema = custom_schema
+                        cls.logger.debug(
+                            f"Using a provided custom schema"
+                        ) if debug else None
 
                     if debug: # print schema_template and schema
                         cls.logger.debug(f"Schema template: {schema_template}")
@@ -193,8 +304,24 @@ class SchemaMigrationEngine():
                     cls.logger.error(f"failed to create collection {collection_name} in database {database_name}")
                     return False
         else:
-            cls.logger.error(f"the database {database_name} does not yet exist, you should create it before creataing a collection in it")
-            return False
+            ### experimental recursive call, 
+            if create_if_not_exist:
+                cls.logger.info(
+                    f"the flag [--create-if-not-exist] was enabled, the database {database_name} will be created as a dependency of creating collection {collection_name}"
+                )
+                if cls.__create_database(client=client,database_name=database_name):
+                    # use recursion?
+                    cls.logger.info(f"successfully created database dependency {database_name} for collection {collection_name}, calling myself to make your collection..")
+                    cls.__create_collection(client=client, database_name=database_name, collection_name=collection_name, custom_schema=custom_schema, use_schema=use_schema, create_if_not_exist=False)
+                    return True
+                else:
+                    cls.logger.error(f"failed to create database depencency {database_name} for collection {collection_name} ..")
+                    return False
+                    #print()
+            else:
+                cls.logger.warning(f"the database {database_name} does not yet exist, you should create it before creataing a collection in it")
+                cls.logger.info(f"if you wish to create the database automatically, use [--create-if-not-exist]")
+                return False
 
 
     @classmethod
@@ -229,68 +356,6 @@ class SchemaMigrationEngine():
         else:
             cls.logger.warning(f"the collection {collection_name} does not exist in the database {database_name}")
             return True
-
-    # database methods
-
-
-    @classmethod
-    def __get_database(cls,
-        client: MongoClient,
-        database_name: str
-    ) -> Database:
-        return client[database_name]
-
-    @classmethod
-    def __create_database(cls,
-        client: MongoClient,
-        database_name: str
-    ) -> bool:
-        dbs = [db['name'] for db in client.list_databases()]
-        if database_name not in dbs:
-            cls.logger.info(f"creating the requested database {database_name}")
-            db = client[database_name]
-            # creates a placeholder collection to ensure the db is saved in Mongo
-            db.create_collection(
-                name='__pymongo__',
-                validator={
-                    "$jsonSchema": {
-                        "bsonType": "object",
-                        "properties": {
-                            "foo": {
-                                "bsonType": "string"
-                            }
-                        }
-                    }
-                }
-            )
-        else:
-            cls.logger.warning(f"the database {database_name} already exists")
-            return False
-        # naïve verification the DB was created
-        if database_name in [db['name'] for db in client.list_databases()]:
-            cls.logger.info(f"the database {database_name} was successfully created")
-            return True
-        else:
-            cls.logger.error(f"the database {database_name} was not successfully created")
-            return False
-
-    @classmethod
-    def __drop_database(cls,
-        client: MongoClient,
-        database_name: str
-    ) -> bool:
-        dbs = [db for db in client.list_databases()]
-        if database_name in [db['name'] for db in dbs]:
-            cls.logger.info(f"dropping database {database_name}")
-            #db = client[database_name]
-            client.drop_database(database_name)
-        # recheck
-        if database_name not in [db['name'] for db in client.list_databases()]:
-            cls.logger.info(f"successfully dropped database {database_name}")
-            return True
-        else:
-            cls.logger.info(f"failed to drop database {database_name}")
-            return False
 
     ## schema methods
     @classmethod
@@ -396,7 +461,7 @@ class SchemaMigrationEngine():
         else:
             return False
 
-    def check_database(self,
+    def database_exists(self,
         database_name: str = None
     ) -> bool:
         client = self.client
@@ -447,6 +512,7 @@ class SchemaMigrationEngine():
         custom_schema: dict = None,
         use_schema: bool = False,
         drop: bool = False,
+        create_if_not_exist: bool = False,
         debug: bool = True,
     ) -> bool:
         client = self.client
@@ -463,6 +529,7 @@ class SchemaMigrationEngine():
                         collection_name=collection_name,
                         custom_schema=None,
                         use_schema=True,
+                        create_if_not_exist=create_if_not_exist,
                         debug=debug
                     ):
                         return True
@@ -483,6 +550,7 @@ class SchemaMigrationEngine():
                 collection_name=collection_name,
                 custom_schema=None,
                 use_schema=True,
+                create_if_not_exist=create_if_not_exist,
                 debug=debug
             ):
                 return True
