@@ -15,9 +15,16 @@ class ConfigLoader():
         value_only: bool = False,
         data: dict = None,
     ) -> Union[dict, int, str, list]:
-        """__get_key [summary]
+        """__get_key - recursively searches a dictionary for a key, extracts and returns {k: v}
 
-        [extended_summary]
+        Iterates through a python dictionary recursively searching for the provided "key_name"
+        By default, returns a dictionary containing the key and value, an extraction
+        setting the value_only arg to True, alters the behaviour of the function to only return the key value
+
+        On an error condition, a dictionary is returned with a message about what went wrong
+        to validate the function succeeded, check if the return type is dict, and contains 'error'
+        
+        ```if isinstance(ret, dict) and 'error' in ret: return False```
 
         Args:
             key_name (str, optional): [description]. Defaults to None.
@@ -30,7 +37,7 @@ class ConfigLoader():
         ret = {"error": "not found"}
         if data is None:
             return {"error": "please pass a python dictionary into the data arg"}
-        
+
         keys = data.keys()
         if key_name in keys:
             if not value_only:
@@ -53,6 +60,19 @@ class ConfigLoader():
         from_object: bool = False,
         config: Union[dict,str] = None
     ) -> dict:
+        """__conf_handler Handles loading configuration data from various sources
+
+        [extended_summary]
+
+        Args:
+            from_file (bool, optional): [Load configuration from a JSON format file]. Defaults to False.
+            from_string (bool, optional): [Load configuration from a JSON string]. Defaults to False.
+            from_object (bool, optional): [Load configuration from a python dictionary]. Defaults to False.
+            config (Union[dict,str], optional): [A path to a file, a JSON string, or a python dictionary]. Defaults to None.
+
+        Returns:
+            dict: [the configuration loaded as a python dictionary]
+        """
 
         if (not from_file and from_string and from_object):
             return {
@@ -89,6 +109,18 @@ class ConfigLoader():
         attrib: str = None,
         value: Union[list, dict, str, int, bool] = None,
     )-> bool:
+        """__add_attribute Add a class attribute to an object
+
+        Adds a class attribute with value to a python object
+
+        Args:
+            obj ([obj]): [This should be an instance of ConfigLoader]
+            attrib (str, optional): [The name of the attribute]. Defaults to None.
+            value (Union[list, dict, str, int, bool], optional): [the value of the attribute]. Defaults to None.
+
+        Returns:
+            bool: [True if successful, False if not]
+        """
         try:
             setattr(obj, attrib, value)
             return True
@@ -99,7 +131,18 @@ class ConfigLoader():
     def __add_attributes(cls,
         obj,
         attribs: dict = None,
-    ) -> bool:
+    ):
+        """__add_attributes Iterates through a dictionary recursively adding each key and value as a class attribute
+
+        Adds class attributes with values to a python object based on the provided `attribs` dictionary
+
+        Args:
+            obj ([obj]): [This should be an instance of ConfigLoader]
+            attribs (dict, optional): [The dict attributes object, `ConfigLoader.config`]. Defaults to None.
+
+        Returns:
+            obj: the modified object
+        """
         for k,v in attribs.items():
             if isinstance(v, dict):
                 cls.__add_attribute(obj=obj, attrib=k, value=v)
@@ -121,6 +164,21 @@ class ConfigLoader():
         from_object: bool = False,
         config: Union[dict,str] = None
     ) -> None:
+        """__init__ Create a ConfigLoader object
+
+        The Config Loader helps with storing and making available configuration values used in the backend, scripts and development
+
+        \U0001F4A1 - keep your version control repository & command history tidy by segregating app code from app configuration!
+        
+        - load configuration values from a JSON file, JSON string, or python dict object
+        - Easily access configuration data safely and securely
+
+        Args:
+            from_file (bool, optional): [Load a configuration from a JSON file]. Defaults to False.
+            from_string (bool, optional): [Load a configuration from a JSON string]. Defaults to False.
+            from_object (bool, optional): [Load a configuration from a python dictionary]. Defaults to False.
+            config (Union[dict,str], optional): [A path to a JSON file, A JSON string, or a python dictionary]. Defaults to None.
+        """
         self.config = self.__class__.__conf_handler(
             from_file=from_file,
             from_string=from_string,
@@ -154,12 +212,19 @@ class ConfigLoader():
 
     def print_config(self,
     ) -> None:
+        """print_config print the loaded configuration
+        """
         print(
             json.dumps(
                 self.config, indent=2
             ))
 
     def get_config(self,) -> dict:
+        """get_config return the loaded configuration
+
+        Returns:
+            dict: [the config dictionary]
+        """
         return self.config
 
     def set_config(self,
@@ -168,6 +233,22 @@ class ConfigLoader():
         from_object: bool = False,
         config: Union[dict,str] = None
     ) -> Union[dict, int, str, list]:
+        """set_config Update the initialized configuration
+
+        Useful for switching contexts at run-time, or if the first load failed because of a typo =)!
+        
+        \U0001F4D3 -> failure to load a file will not block the object creation ...
+        it will create an object with an error message in it's config attribute
+
+        Args:
+            from_file (bool, optional): [description]. Defaults to False.
+            from_string (bool, optional): [description]. Defaults to False.
+            from_object (bool, optional): [description]. Defaults to False.
+            config (Union[dict,str], optional): [description]. Defaults to None.
+
+        Returns:
+            Union[dict, int, str, list]: [description]
+        """
         if config is not None:
             self.config = self.__class__.__conf_handler(
                 from_file=from_file,
@@ -184,6 +265,20 @@ class ConfigLoader():
         value_only: bool = False,
         data: dict = None,
     ) -> Union[dict, int, str, list]:
+        """get_key recursively search the config object for `key_name`
+
+        Searches a config dictionary recursively for requested key_name, returns
+        - dict by default
+        - value only when `value_only` is True 
+
+        Args:
+            key_name (str, optional): [The key to find]. Defaults to None.
+            value_only (bool, optional): [Only return the value]. Defaults to False.
+            data (dict, optional): [The data to search, by default self.config]. Defaults to None.
+
+        Returns:
+            Union[dict, int, str, list]: [The function may return a dict {k:v} or a bare value based on the args provided]
+        """
         del data
         return self.__class__.__get_key(
             key_name=key_name,
