@@ -89,9 +89,9 @@ class StaticSchemas(object):
             "descr": str,
             "funcs": list,
             "boardmap": {
-                "Physical/Board": str,
-                "GPIO/BCM": str,
-                "Wiring Pi": str
+                "physical_board": str,
+                "gpio_bcm": str,
+                "wiring_pi": str
             },
         "header_col": int,
         "header_row": int,
@@ -148,6 +148,11 @@ class SchemaFactory(object):
 
 
     def pretty_print(self, it: dict) -> None:
+        """Pretty print schemas or schema templates
+
+        Args:
+            it (dict): [description]
+        """
         print(json.dumps(it, indent=2, cls=SchemaTemplateEncoder))
 
     @classmethod
@@ -170,6 +175,14 @@ class SchemaFactory(object):
     def compile_schema_template_from_file(self,
         schema_template_path: str = None
     ) -> dict:
+        """Compile an arbitrary schema serialized to file
+
+        Args:
+            schema_template_path (str, optional): [description]. Defaults to None.
+
+        Returns:
+            dict: [description]
+        """
         schema_template = self.__class__.load_schema_template_from_file(schema_template_path=schema_template_path)
         factory = self
         validator = copy(factory.validator)
@@ -182,6 +195,16 @@ class SchemaFactory(object):
         schema_type: str = None,
         schema_template_name: str = None,
     ) -> bool:
+        """Write a compiled scheme object to JSON format file
+
+        Args:
+            schema_file_path (str, optional): [description]. Defaults to None.
+            schema_type (str, optional): [description]. Defaults to None.
+            schema_template_name (str, optional): [description]. Defaults to None.
+
+        Returns:
+            bool: [description]
+        """
         schema = self.compile_default_schema_template(
             schema_type=schema_type,
             schema_template_name=schema_template_name
@@ -230,6 +253,16 @@ class SchemaFactory(object):
         schema_template_name: str = None,
         schema_template_file_path: str = None,
     ) -> bool:
+        """Serialize a default schema template to file
+
+        Args:
+            schema_type (str, optional): [description]. Defaults to None.
+            schema_template_name (str, optional): [description]. Defaults to None.
+            schema_template_file_path (str, optional): [description]. Defaults to None.
+
+        Returns:
+            bool: [description]
+        """
         schema_template = self.get_default_schema_template(
             schema_type=schema_type,
             schema_template_name=schema_template_name
@@ -341,10 +374,15 @@ class SchemaFactory(object):
         schema = factory.generate_schema(schema_template)
         validator['$jsonSchema']['properties'] = schema
         return validator
-    ####
+    
 
     def list_default_schemas(self,
     ) -> list:
+        """list defined default schemas
+
+        Returns:
+            list: [description]
+        """
         results = []
         for klass in [StaticSchemas, DynamicSchemas]:
             klass_name = klass.__name__
@@ -356,6 +394,8 @@ class SchemaFactory(object):
 
     def print_default_schemas(self,
     ) -> None:
+        """Pretty print defined default schemas
+        """
         print(json.dumps(
             self.list_default_schemas(),
             indent=2
@@ -363,7 +403,7 @@ class SchemaFactory(object):
 
 
     def generate_schema(self, schema_obj):
-        """[summary]
+        """Generate a schema
 
         Args:
             schema_obj ([dict]): [a python representation of mongodb schema]
