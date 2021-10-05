@@ -99,8 +99,8 @@ class PiInfo(object):
                 'label': pin.function,
                 'header_row': pin.row,
                 'header_col': pin.col,
-                'info_url': self.__class__.pinout(pin.number, pin.function),
-                'data': self.__class__.pindata(pin.number, pin.function)
+                'info_url': self.__class__.__pinout(pin.number, pin.function),
+                'data': self.__class__.__pindata(pin.number, pin.function)
             }
             for pin in self.gpiopins.values()
         }
@@ -117,7 +117,7 @@ class PiInfo(object):
 
 
     @classmethod
-    def pinout(cls,pin: int = None, label: str = None):
+    def __pinout(cls,pin: int = None, label: str = None):
         """Derives pinout URL based on BCM board number and pin label
 
         Args:
@@ -139,7 +139,7 @@ class PiInfo(object):
             return urljoin(base_url, powerpins[label])
 
     @classmethod
-    def pindata(cls, pin: int = None, label: str = None) -> dict:
+    def __pindata(cls, pin: int = None, label: str = None) -> dict:
         """pindata - Enriches the PiInfo.gpios entry for each GPIO by scraping pinout.xyz for valuable information
 
         Scrapes pinout.xyz to enrich PiInfo object with mappings of additional data _not_ found from board itself for each pin on the J8 header
@@ -185,7 +185,7 @@ class PiInfo(object):
         if label in powerpins.keys():
             articleid = powerpins[label]
             parser = "power"
-        pin_url = cls.pinout(pin, label)
+        pin_url = cls.__pinout(pin, label)
         response = requests.get(pin_url)
         html = BeautifulSoup(response.text, 'html.parser')
         article = html.find('article', class_="{}".format(articleid))
