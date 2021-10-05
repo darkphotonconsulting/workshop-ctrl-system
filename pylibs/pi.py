@@ -140,39 +140,39 @@ class PiInfo(object):
 
     @classmethod
     def pindata(cls, pin: int = None, label: str = None) -> dict:
-        """Scrapes pinout.xyz to enrich PiInfo object with mappings of additional data
-        not found from board itself for each pin
-        - GPIO functions (PWM, I2C, etc)
-        - variant board addresses (BCM, Wiring Pi, Board)
-        - description
-        - title (as seen on pinout.xyz)
+        """pindata - Enriches the PiInfo.gpios entry for each GPIO by scraping pinout.xyz for valuable information
+
+        Scrapes pinout.xyz to enrich PiInfo object with mappings of additional data _not_ found from board itself for each pin on the J8 header
+            - GPIO functions (PWM, I2C, etc)
+            - variant board addresses (BCM, Wiring Pi, Board)
+            - description
+            - title (as seen on pinout.xyz)
 
         Output Example
 
         {
             "boardmap": {
-                "GPIO/BCM": "str",
-                "Physical/Board: "str",
-                "Wiring Pi": "str"
+                "gpio_bcm": "The GPIO/BCM address",
+                "physical_board: "physical board address",
+                "wiring_pi": "wiring pi address"
             },
-            "descr": "str",
+            "descr": "description from pinout.xyz",
             "funcs : [
-                "str",
+                "detailed function list",
                 "str",
                 "str",
                 ...
             ],
-            "title : "str" 
+            "title : "article title from pinout.xyz" 
         }
 
         Args:
-            pin (int, optional): [description]. Defaults to None.
-            label (str, optional): [description]. Defaults to None.
+            pin (int, optional): [The pin number to return data for]. Defaults to None.
+            label (str, optional): [The pin label to return data for]. Defaults to None.
 
         Returns:
-            dict: rich  pin data dictionary
+            dict: pin data dict
         """
-
         parser = ""
         powerpins = {
             'GND': 'page_ground',
@@ -216,7 +216,7 @@ class PiInfo(object):
                 )
             )
 
-            # add a uuid in boardmap for better mongoing 
+            # add a uuid in boardmap for better mongoing
             boardmap['uuid'] = str(uuid4())
             #add a better description...
             desc = list(
