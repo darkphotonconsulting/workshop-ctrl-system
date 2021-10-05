@@ -16,7 +16,7 @@ from bson.objectid import ObjectId
 from pylibs.schema.migration import SchemaMigrationEngine
 from pylibs.logging.loginator import Loginator
 from argparse import ArgumentParser, Namespace
-
+from pylibs.schema.default_schemas import SchemaFactory
 logger = logging.getLogger('Main')
 loginator = Loginator(
     logger=logger
@@ -71,15 +71,15 @@ conn_args.add_argument('--mongo-port',
 )
 conn_args.add_argument('--mongo-username',
     type=str,
-    required=True,
+    required=False,
     action='store',
-    help='MongoDB Administrative Username'
+    help='MongoDB Administrative Username (required for all mongo operations)'
 )
 conn_args.add_argument('--mongo-password',
     type=str,
-    required=True,
+    required=False,
     action='store',
-    help='MongoDB Administrative Password'
+    help='MongoDB Administrative Password (required for all mongo operations)'
 )
 action_args.add_argument('--drop-existing',
     action='store_true',
@@ -128,6 +128,20 @@ action_args.add_argument('--list-items',
     action='store_true',
     required=False,
     help='Lists items in a MongoDB Collection'
+)
+action_args.add_argument('--list-defined-schemas',
+    action='store_true',
+    required=False,
+    help='Lists defined schemas'
+)
+action_args.add_argument('--print-defined-schema',
+    action='store_true',
+    required=False,
+    help="""
+    Print a default schema, must set [--database-name <dbName> --collection-name <collName>]\n
+    the top level key schema_type is the database\n
+    the next level key is the scheme_template_name (see [--list-defined-schemas])
+    """
 )
 action_args.add_argument('--count-items',
     action='store_true',
@@ -238,6 +252,11 @@ def list_items(a: Namespace):
             cls=MigrationEncoder
         ))
 
+def list_defined_schemas(a: Namespace):
+    engine = get_engine(a)
+    engine.print_defined_schemas()
+    exit(stop_codes['SUCCESS'])
+
 def count_items(a: Namespace) -> dict:
     engine = get_engine(a)
     if a.database_name == '':
@@ -299,8 +318,6 @@ def create_collection(a: Namespace):
                 f"if using [--load-default-schemas] the [--collection-name] argument value MUST be one of 'system', 'relays' or 'gpios'"
             )
             exit(stop_codes['ARGUMENTS'])
-
-
     #if engine.database_exists(database_name=a.database_name): #database exists
     if engine.create_collection(
         database_name=a.database_name,
@@ -317,37 +334,6 @@ def create_collection(a: Namespace):
         logger.error(
             f"failed to create collection {a.collection_name} in database {a.database_name}"
         )
-    # else: # database does not exist
-    #     logger.warning(f"you are trying to create a collection in a database which does not exist")
-    #     if a.create_if_not_exist:
-    #         logger.info(f"the [--create-if-not-exist] flag was enabled")
-    #         if engine.create_database(
-    #             database_name=a.database_name
-    #         ):
-    #             logger.info(f"successfully created the database [{a.database_name}] for your collection [{a.collection_name}]")
-    #             if engine.create_collection(
-    #                 database_name=a.database_name,
-    #                 collection_name=a.collection_name,
-    #                 custom_schema=None,
-    #                 use_schema=a.use_default_schemas,
-    #                 drop=a.drop_existing,
-    #                 debug=a.debug): #collection creation successful
-    #                 logger.info(
-    #                     f"successfully created collection {a.collection_name} in database {a.database_name}"
-    #                 )
-    #             else: #collection creation failed
-    #                 logger.error(
-    #                     f"failed to create collection {a.collection_name} in database {a.database_name}"
-    #                 )
-    #                 exit(stop_codes['EXECUTION_ERROR'])
-    #         else:
-    #             logger.error(f"not able to create the database [{a.database_name}] for your collection [{a.collection_name}]")
-    #             exit(stop_codes['EXECUTION_ERROR'])
-    #     else:
-    #         logger.warning(f"Please use the [--create-if-not-exist] flag to create objects which don't exist first, eg a database")
-    #         parser.print_help()
-    #         exit(stop_codes['ARGUMENTS'])
-
 
 def drop_database(a: Namespace):
     engine = get_engine(a)
@@ -384,32 +370,184 @@ def drop_collection(a: Namespace):
     else:
         exit(stop_codes['EXECUTION_ERROR'])
 
+def print_default_schema(a: Namespace):
+    engine = get_engine(a)
+    template = engine.get_default_schema_template(
+        database_name=a.database_name,
+        collection_name=a.collection_name,
+        pretty_print=False
+    )
+    factory = SchemaFactory()
+    schema = factory.compile_default_schema_template(
+       schema_type=a.database_name,
+       schema_template_name=a.collection_name,   
+    )
+    print(
+        json.dumps(
+            schema,
+            indent=2,
+            cls=MigrationEncoder
+        )
+    )
+
 
 def main(a: Namespace):
+
+    #validate args
+    if a.drop_existing and a.create_if_not_exist:
+        parser.error("you can not use --drop-existing and --create-if-not-exist together")
+
+
+    if a.print_defined_schema:
+        if not (
+            a.database_name and a.collection_name
+        ):
+            logger.warning(f"""
+            please set the required values;
+
+            [--database-name <dbName>] system or dynamic
+            [--collection-name <collName>]
+            for suitable collection names, see output from [--list-defined-schemas]
+            """)
+        else:   
+           print_default_schema(a)
+           
+    if a.list_defined_schemas:
+        list_defined_schemas(a)
+
     if a.list_databases:
-        list_databases(a)
+        if not (
+            a.mongo_username and a.mongo_password
+        ):
+            logger.warning(f"""
+                please set the required values;
+                [--mongo-username] <adminUsername>
+                [--mongo-password] <adminPassword>
+
+                in order to use --list-databases
+                """)
+        else:
+            list_databases(a)
 
     if a.list_collections:
-        list_collections(a)
+        if not (
+            a.mongo_username and a.mongo_password and a.database_name
+        ):
+            logger.warning(
+                f"""
+                please set the required values;
+                [--mongo-username] <adminUsername>
+                [--mongo-password] <adminPassword>
+                [--database-name] <dbName>
 
+                in order to use --list-collections
+                """
+            )
+        else:
+            list_collections(a)
 
     if a.list_items:
-        list_items(a)
+        if not (
+            a.mongo_username and a.mongo_password and a.database_name and a.collection_name
+        ):
+            logger.warning(
+                f"""
+                set the following values
+                [--mongo-username]
+                [--mongo-password]
+                [--database-name <dbName>]
+                [--collection-name <colName>] 
+                in order to use --list-items
+                """
+            )
+        else:
+            list_items(a)
 
     if a.count_items:
-        count_items((a))
+        if not (
+            a.mongo_username and a.mongo_password and a.database_name and a.collection_name
+        ):
+            logger.warning(
+                f"""
+                set the following values
+                [--mongo-username]
+                [--mongo-password]
+                [--database-name <dbName>]
+                [--collection-name <colName>]
+                
+                in order to use --count-items
+                """
+            )
+        else:
+            count_items((a))
 
     if a.create_database:
-        create_database(a)
+        if not (
+            a.mongo_username and a.mongo_password and a.database_name
+        ):
+            logger.warning(
+                f"""
+                set the following values
+                [--mongo-username]
+                [--mongo-password]
+                [--database-name <dbName>]
+                
+                in order to use --create-database
+                """
+            )
+        else:
+            create_database(a)
 
     if a.drop_database:
-        drop_database(a)
+        if not (
+            a.mongo_username and a.mongo_password and a.database_name
+        ):
+            logger.warning(
+                f"""
+                set the following values
+                [--mongo-username]
+                [--mongo-password]
+                [--database-name <dbName>]
+                
+                in order to use --create-database
+                """
+            )
+        else:
+            drop_database(a)
 
     if a.create_collection:
-        create_collection(a)
+        if not (
+            a.mongo_username and a.mongo_password and a.database_name and a.collection_name
+        ):
+            logger.warning(f"""
+                set the following values
+                [--mongo-username]
+                [--mongo-password]
+                [--database-name <dbName>]
+                [--collection-name <colName>]
+                 
+                in order to use --create-collection
+                """)
+        else:
+            create_collection(a)
 
     if a.drop_collection:
-        drop_collection(a)
+        if not (
+            a.mongo_username and a.mongo_password and a.database_name and a.collection_name
+        ):
+            logger.warning(f"""
+                set the following values
+                [--mongo-username]
+                [--mongo-password]
+                [--database-name <dbName>]
+                [--collection-name <colName>]
+                 
+                in order to use --drop-collection
+                """)
+        else:
+            drop_collection(a)
+
+
 
 
 
