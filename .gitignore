@@ -17,10 +17,11 @@
 .env.development.local
 .env.test.local
 .env.production.local
+settings/*.json
 
 #ignore any dotenv configuration files
 .env
-
+*.ini
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
