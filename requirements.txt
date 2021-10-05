@@ -16,3 +16,4 @@ flask-mongoengine
 flask-WTF
 Flask-GraphQL
 graphene-mongo
+python-dotenv
