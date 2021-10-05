@@ -29,6 +29,11 @@ from pylibs.logging.loginator import Loginator
 
 
 class SchemaMigrationEngine():
+    """[summary]
+
+    Returns:
+        [type]: [description]
+    """
     # setup the loginator alligator =)
     logger = logging.getLogger('SchemaMigrationEngine')
     loginator = Loginator(
@@ -418,6 +423,15 @@ class SchemaMigrationEngine():
         validator['$jsonSchema']['properties'] = schema 
         return validator
 
+    @classmethod
+    def __pretty_print_defined_schemas(cls,
+    ) ->None: 
+        factory = SchemaFactory()
+        print(json.dumps(
+            factory.list_default_schemas(),
+            indent=2
+        ))
+        
     def __init__(self,
         mongo_host: str,
         mongo_port: int,
@@ -610,6 +624,10 @@ class SchemaMigrationEngine():
             self.__class__.logger.warning(f"the collection {collection_name} in database {database_name} does not exit to drop")
             return True
 
+    def print_defined_schemas(self,
+    ) -> None:
+        self.__class__.__pretty_print_defined_schemas()
+        
     def get_schema(
         self,
         database_name: str = None,
@@ -636,3 +654,29 @@ class SchemaMigrationEngine():
         else:  # if no such template exists, fail
             print("on return none branch")
             return None
+
+    def get_default_schema_template(self,
+        database_name: str = None,
+        collection_name: str = None,
+        pretty_print: bool = False,
+    ) -> dict:
+        if database_name is None:
+            database_name = 'static'
+
+        if collection_name is None:
+            collection_name = 'system'
+
+        factory = SchemaFactory()
+        template = factory.get_default_schema_template(
+            schema_type=database_name,
+            schema_template_name=collection_name
+        )
+
+        if pretty_print:
+            print(json.dumps(
+                template, 
+                cls=SchemaTemplateEncoder
+            ))
+            return template
+        else:
+            return template
