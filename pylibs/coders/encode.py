@@ -5,25 +5,37 @@ from uuid import UUID
 
 
 class MigrationEncoder(JSONEncoder):
-    """JSON Encoder class overrides for generally unsupported data types common to pymongo/mongoengine, and MongoDB data
+    """MigrationEncoder - Serialize Schema Templates to JSON format
 
-    This simply overrides the default method of the JSONEncoder
-    For example: 
-    - each mongo object has an id of type ObjectID (from the bson.objectid module)
-    - UUID(s) are used internally by the application in default schemas to identify relations between pin data
+    Override for json.JSONEncoder which allows a HeadUnit mongo schema template object to be serialized 
+    to a compliant JSON formatted string for the purpose of being written to files by the data 
+    migration tool set. 
+
+    Allows objects containing ObjectId or UUID types as values to be encoded
+
+    This class override method is documented in https://docs.python.org/3/library/json.html#module-json
+
+    Some useful details about JSON:
     
+        - https://datatracker.ietf.org/doc/html/rfc7159.html
+        - https://www.ecma-international.org/publications-and-standards/standards/ecma-404/
 
-    Inherits:
-        json.JSONEncoder
+
+    - The override allows UUIDs and ObjectIds to be serialized properly 
+
     """
     def default(self, object):
-        """default method
+        """default - a function that gets called for objects that can’t otherwise be serialized. 
 
+        It should return a JSON encodable version of the object or raise a TypeError. If not specified, TypeError is raised.
+
+        https://docs.python.org/3/library/json.html#json.JSONEncoder.default
+        
         Args:
-            object: a value returned from JSONEncoder default encoder method
+            object (object): JSON encodable object (dict, list, ...)
 
         Returns:
-            converts UUIDs and ObjectId to strings, defaults to JSONEncoder defaults otherwise
+            object: a JSON encodable version of the object or raise a TypeError.
         """
         if isinstance(object, UUID):
             return str(object)
@@ -33,43 +45,53 @@ class MigrationEncoder(JSONEncoder):
         return JSONEncoder.default(self, object)
 
 class SchemaTemplateEncoder(JSONEncoder):
-    """JSON Encoder class overrides for Schema Templates
+    """SchemaTemplateEncoder - Serialize Schema Templates to JSON format
 
+    Override for json.JSONEncoder which allows a HeadUnit mongo schema template object to be serialized 
+    to a compliant JSON formatted string
 
-    This simply overrides the default method of the JSONEncoder
+    This class override method is documented in https://docs.python.org/3/library/json.html#module-json
+
+    Some useful details about JSON:
     
-    - A template is a python dictionary which in it's simplest form looks like this:
+        - https://datatracker.ietf.org/doc/html/rfc7159.html
+        - https://www.ecma-international.org/publications-and-standards/standards/ecma-404/
 
-    {"keyName": "pythonType"}
 
-    - The dictionary can be however many levels deep, 
-      as long as each non-dict value is a simple string representing the values data type
-
-     {"foo": "list" } 
-
-    - A randomly complex example is below
-     {
-         "foo": {
-             "bar": "list",
-             "goo": "int",
-             "boo": {
-                 "baragain": "str
-             }
-         }
-     } 
-        
-    Inherits:
-        json.JSONEncoder
+    - The dictionary can be infinitely n-levels levels deep:
+    - Rules: each non-key value is a simple string representing the values data type
+    - Rules: if a key is a nested dict object, simple use the enclosed bracket syntax to nest into the key...
+    - A schema template is simply a python dictionary which in it's simplest form looks like this:
+        - A simple template
+            {
+                "keyName": type
+            }
+        - A complex template
+            {
+                "foo": list,
+                "bar": {
+                    "foo": true,
+                    "alist": list,
+                    "ainteger": int,
+                    "astring", str
+                } 
+            }
+    - The encoder supports any type which has a `__name__` attribute
     """
 
     def default(self, object):
-        """default method
+        """default - a function that gets called for objects that can’t otherwise be serialized. 
 
+        It should return a JSON encodable version of the object or raise a TypeError. If not specified, TypeError is raised.
+
+        https://docs.python.org/3/library/json.html#json.JSONEncoder.default
+        
         Args:
-            object ([Any]): a value returned from JSONEncoder default encoder method
+            object (object): JSON encodable object (dict, list, ...)
 
         Returns:
-            Converts a python object type to it's string equivalent name
+            object: a JSON encodable version of the object or raise a TypeError.
         """
-        if isinstance(object, type):
+        if isinstance(object, type): # return the type.__name__ of any object
+            # TODO: support bools properly
             return object.__name__
