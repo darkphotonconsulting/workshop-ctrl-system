@@ -3,10 +3,9 @@ import sys
 #from pylibs.logging.loginator import Loginator
 
 class CustomFormatter(logging.Formatter):
-    """Super snazzy log formatter
+    """CustomFormatter - A colorful and loud formatter for the logging module
 
-    Inherits:
-        logging.Formatter
+    This is an override for the default logging.Formatter class.
     """
 
     blue = "\u001b[38;5;20m"
@@ -37,7 +36,7 @@ class CustomFormatter(logging.Formatter):
 
 
 class Loginator():
-    """Super snazzy stream log outputs for scripts and stuffs
+    """Loginator - Super snazzy stream log outputs for scripts and stuffs
     """
     def __init__(self,
             logger: logging.Logger = logging.getLogger(name=__file__),

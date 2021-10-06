@@ -29,21 +29,54 @@ class PiInfoEncoder(JSONEncoder):
                 object
             )
 class PiInfo(object):
-    """Data container class for Raspberry Pi static system information
+    """PiInfo - gathers and compiles information about the running Raspberry Pi
 
-    @Args:
-        None
+    Provides a rich data object specfic to the running raspberry pi \U0001F967 
 
-    @Returns:
-        A PiInfo object
+    - system info
+    - gpios
+
+    Examples:
+        from pylibs.pi import PiInfo
+        piinfo = PiInfo()
+
+        # system data
+        piinfo.system
+
+        # gpio data 
+        piinfo.gpios
+
+        # much more
+        dir(piinfo) 
+
+
+    Attributes:
+        data (gpiozero.pins.data.PiBoardInfo): the original board info object used to get GPIO and system data
+        headers (list): a list of the pin headers present on the board
+        system (dict): system data extracted into a dictionary
+        pimap (dict): a compiled dictionary with both system and gpio data
+        pinmap (dict): a dictionary containing data pertaining to each GPIO
+        gpios (list of dict): a list with each item being a gpio dictionary
+        poepins (dict): a dictionary mapping poe pin number to pin info object
+        gpiopins (dict): a dictionary mapping pin number to pin info object
+        
+        
+
+    Returns:
+        PiInfo: a PiInfo object
     """
 
     data = pi_info()
 
 
 
-    def __init__(self):
-        """initializes a PiInfo object for the running system (supports Raspberry 4 B+)"""
+    def __init__(self
+    ) -> None:
+        """__init__ Returns an object of PiInfo class
+
+        Explore a modern raspberry pi, save data in this object
+        """
+        
         data = self.__class__.data
         factory = Device._default_pin_factory()
         self.GPIO_FUNCTIONS = {
@@ -243,12 +276,12 @@ class PiInfo(object):
                 #"id"
             }
         else:
-            print(f"processing {label} as a power pin")
+            #print(f"processing {label} as a power pin")
             desc = list(filter(
                 lambda x: type(x.string) is not type(None),
                 list(article.find_all('p'))
             ))
-            print(f"got description: {desc}")
+            #print(f"got description: {desc}")
 
             return {
                 "title": "{}".format(article.contents[0].string),

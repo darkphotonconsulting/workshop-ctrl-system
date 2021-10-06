@@ -43,6 +43,16 @@ MONGO_STRUCTURE = {
 
 
 class DynamicSchemas(object):
+    """DynamicSchemas - default MongoDB Schema templates for dynamic collections
+
+
+    Attributes:
+
+    system_memory_stats (dict) - schema template for system memory stats
+    system_net_stats (dict) - schema template for system network stats
+    system_cpu_stats (dict) - schema template for system cpu stats
+    
+    """
     system_memory_stats = {
         "total": int,
         "available": int,
@@ -61,10 +71,14 @@ class DynamicSchemas(object):
 
     }
 class StaticSchemas(object):
-    """Default Mongo DB static system schemas
+    """StaticSchemas - default MongoDB Schema templates for static collections
 
-    Args:
-        object ([type]): [description]
+
+    Attributes:
+
+    system (dict) - schema template for system
+    gpios (dict) - schema template for gpios
+    relays (dict) - schema template for relays
     """
     system = {
         "manufacturer": str,
@@ -120,16 +134,16 @@ class StaticSchemas(object):
 
 
 class SchemaFactory(object):
-    """Compiles MongoDB validation schemas per spec defined here https://docs.mongodb.com/manual/core/schema-validation/
+    """SchemaFactory - Compiles MongoDB validation schemas 
+
+    MongoDB schema validation specs are defined here https://docs.mongodb.com/manual/core/schema-validation/
+    
     - Can compile schemas from default defined schemas (StaticSchemas and DynamicSchemas)
     - Can compile a schema from file sources
-    - Export Schema templates, and schemas to JSON, YAML, etc. for review or usage outside of this program
+    - Export Schema templates, and schemas to JSON, YAML, etc.
 
-    Args:
-        None
-
-    Returns:
-        SchemaFactory
+    Attributes:
+        validator (dict) - the top level keys for a compliant mongodb validation schema
     """
 
     logger = logging.getLogger('SchemaFactory')
@@ -138,6 +152,9 @@ class SchemaFactory(object):
     nested = False
     last_seen = None
     def __init__(self):
+        """__init__ Create a SchemaFactory object
+
+        """
         self.required = []
         self.validator = {
             "$jsonSchema": {
@@ -159,6 +176,14 @@ class SchemaFactory(object):
     def load_schema_template_from_file(cls,
         schema_template_path: str = None,
     ) -> dict:
+        """load_schema_template_from_file load a schema template previously serialized to file
+
+        Args:
+            schema_template_path (str, optional): Path to a serialized JSON format schema template file. Defaults to None.
+
+        Returns:
+            dict: a python decoded dict representing the schema
+        """
         schema_template = {}
         if os.path.exists(schema_template_path):
             with open(schema_template_path) as file:
@@ -178,10 +203,10 @@ class SchemaFactory(object):
         """Compile an arbitrary schema serialized to file
 
         Args:
-            schema_template_path (str, optional): [description]. Defaults to None.
+            schema_template_path (str, optional): [Path to schema template file]. Defaults to None.
 
         Returns:
-            dict: [description]
+            dict: Compiled decoded schema object
         """
         schema_template = self.__class__.load_schema_template_from_file(schema_template_path=schema_template_path)
         factory = self
@@ -203,7 +228,7 @@ class SchemaFactory(object):
             schema_template_name (str, optional): [description]. Defaults to None.
 
         Returns:
-            bool: [description]
+            bool: True if successful, False if failed
         """
         schema = self.compile_default_schema_template(
             schema_type=schema_type,
@@ -256,12 +281,12 @@ class SchemaFactory(object):
         """Serialize a default schema template to file
 
         Args:
-            schema_type (str, optional): [description]. Defaults to None.
-            schema_template_name (str, optional): [description]. Defaults to None.
+            schema_type (str, optional): [`static` or `dynamic`]. Defaults to None.
+            schema_template_name (str, optional): [see valid collection names for valid values]. Defaults to None.
             schema_template_file_path (str, optional): [description]. Defaults to None.
 
         Returns:
-            bool: [description]
+            bool: True if successful, False if failed
         """
         schema_template = self.get_default_schema_template(
             schema_type=schema_type,
@@ -406,7 +431,7 @@ class SchemaFactory(object):
         """Generate a schema
 
         Args:
-            schema_obj ([dict]): [a python representation of mongodb schema]
+            schema_obj ([dict]): a python representation of mongodb schema
 
         Returns:
             [str]: [JSON string representing mongodb schema validator]
@@ -419,11 +444,11 @@ class SchemaFactory(object):
         """Maps python types to bson types where applicable
 
         Args:
-            key ([Any]): [a key in a dict]
-            value ([Any]): [a value in a dict]
+            key (str): a key in a dict
+            value ([Any]): a value in a dict
 
         Returns:
-            [dict]: dictionary with bsonType for property (key)
+            (dict): dictionary with bsonType for property (key)
         """
         if value is str or isinstance(value, str):
             return {'bsonType': 'string'}
@@ -465,15 +490,19 @@ class SchemaFactory(object):
 
     @classmethod
     def _recurse_schema_keys(cls, validator, schema_obj):
-        """Recurse a python schema template object dictionary and output a mongodb validator template
+        """_recurse_schema_keys Recurse a python schema template object dictionary & output a subset of the mongodb validator template
+
+        The subset can be plugged under the "properties" key of a validator dict
 
         Args:
-            validator ([type]): [description]
-            schema_obj ([type]): [description]
+            validator (dict): a copy of the SchemaFactory objects validator key works here
+            schema_obj (dict): the schema template dict object
 
         Returns:
-            [str]: [the schema]
+            props (dict): the user data portion of mongodb validation schema as a dict
+        
         """
+
         props = {}
         #print(validator)
         for k, v in schema_obj.items():

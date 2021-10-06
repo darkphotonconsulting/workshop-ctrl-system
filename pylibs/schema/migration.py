@@ -29,10 +29,30 @@ from pylibs.logging.loginator import Loginator
 
 
 class SchemaMigrationEngine():
-    """[summary]
+    """SchemaMigrationEngine exposes functions for easily creating defined schemas, databases, and collections in MongoDB
 
-    Returns:
-        [type]: [description]
+    The headunit application uses a MongoDB backend, therefore before a first run, you'll need to do a couple of things
+
+    Migrate - Migrating in this use case is defined as creating the databases, collections and validation schemas in MongoDB. 
+        This will be the first step to populating your backend with default data
+    Seed -  The seeding process involves inserting records into the mongoDB collections created during migrate
+        This generally involves the Pi system and GPIO data, but can also be used to bulk import user defined relay data.
+    
+
+    Class Attributes:
+        logger (logging.logger) - a loginator juiced instance logger associated with this class
+        loginator (Loginator) - the loginator instance
+        DEFAULT_FILE_MAP (dict) - default mappings for file exports TODO: deprecate
+        DEFAULT_MONGO_STRUCTURE (dict) - default layout for mongodb TODO: deprecate
+        SUPPORTED_STATIC_SCHEMAS (list) - list of supported schemas TODO: deprecate
+        SUPPORTED_DYNAMIC_SCHEMAS (list) - TODO: deprecate
+        
+    Attributes:
+        client (MongoClient) - the mongoclient connection associated with this engine instance
+        server_info (dict) - the server_info dictionary returned from the client connection 
+        server_version (str) - the version of the mongodb connected to
+        schema_template (dict) - by default an empty dictionary
+        schema (dict) - by default an empty dictionary
     """
     # setup the loginator alligator =)
     logger = logging.getLogger('SchemaMigrationEngine')
@@ -40,12 +60,43 @@ class SchemaMigrationEngine():
         logger=logger
     )
     logger = loginator.logger
+    #TODO: get rid of these maps, you should be able to create the database and collection where you want
     DEFAULT_FILE_MAP = FILE_MAP
     DEFAULT_MONGO_STRUCTURE = MONGO_STRUCTURE
     SUPPORTED_STATIC_SCHEMAS = list(
         sorted(list(set(list(FILE_MAP.keys())) - set(['extension']))))
     SUPPORTED_DYNAMIC_SCHEMAS = []
 
+    def __init__(self,
+        mongo_host: str,
+        mongo_port: int,
+        admin_user: str,
+        admin_password: str
+    ) -> None:
+        """__init__ create a SchemaMigrationEngine object
+
+        \U0001F4D3 When using this class, you should be providing the administrative users creds, not the application user
+            This is because this class expects to create top level objects such as dbs, and then collections under them.
+
+            TODO: support attaching users to any created db by passing in some type of JSON string/file, etc.
+        Args:
+            mongo_host (str): The MongoDB host FQDN or IP
+            mongo_port (int): The MongoDB port
+            admin_user (str): An administrative user with access to MongoDB
+            admin_password (str): An administrative user with access to MongoDB
+        """
+        self.client = self.__class__.__initialize_mongo_connection(
+            mongo_host=mongo_host,
+            mongo_port=mongo_port,
+            admin_user=admin_user,
+            admin_password=admin_password)
+        self.server_info = self.client.server_info()
+        self.server_version = self.server_info['version']
+        #initialize parameters on self, will be updated
+        self.schema_template = {}
+        self.schema = {}
+        self.database = ""
+        
     @classmethod
     def __initialize_mongo_connection(cls,
         mongo_host: str,
@@ -53,6 +104,17 @@ class SchemaMigrationEngine():
         admin_user: str,
         admin_password: str
     ) -> MongoClient:
+        """__initialize_mongo_connection init a connection to MongoDB
+
+        Args:
+            mongo_host (str): MongoDB host
+            mongo_port (int): MongoDB password
+            admin_user (str): MongoDB admin user
+            admin_password (str): MongoDB admin password
+
+        Returns:
+            MongoClient: a MongoClient object connected to requested mongo instance
+        """
         config = BaseConfig(mongo_host=mongo_host,
                             mongo_port=mongo_port,
                             mongo_username=admin_user,
@@ -65,6 +127,16 @@ class SchemaMigrationEngine():
         client: MongoClient,
         key: str = None
     ) -> list:
+        """__list_databases List databases visible to current user connection
+
+
+        Args:
+            client (MongoClient): a MongoClient
+            key (str, optional): when provided only return the requested key from the list of dicts. Defaults to None.
+
+        Returns:
+            list: this may be a list of dicts or a list of Any based on the value of `key`
+        """
         dbs = [db for db in client.list_databases()]
         if key is None:
             return dbs
@@ -82,6 +154,18 @@ class SchemaMigrationEngine():
         database_name: str,
         key: str = None
     ) -> list:
+        """__list_collections list the collections under a database
+
+        [extended_summary]
+
+        Args:
+            client (MongoClient): [description]
+            database_name (str): [description]
+            key (str, optional): [description]. Defaults to None.
+
+        Returns:
+            list: [description]
+        """
         db = client[database_name]
         collections = [
             collection for collection in db.list_collections()
@@ -432,23 +516,7 @@ class SchemaMigrationEngine():
             indent=2
         ))
         
-    def __init__(self,
-        mongo_host: str,
-        mongo_port: int,
-        admin_user: str,
-        admin_password: str
-    ) -> None:
-        self.client = self.__class__.__initialize_mongo_connection(
-            mongo_host=mongo_host,
-            mongo_port=mongo_port,
-            admin_user=admin_user,
-            admin_password=admin_password)
-        self.server_info = self.client.server_info()
-        self.server_version = self.server_info['version']
-        #initialize parameters on self, will be updated
-        self.schema_template = {}
-        self.schema = {}
-        self.database = ""
+
 
     def list_databases(self,
         key: bool =None

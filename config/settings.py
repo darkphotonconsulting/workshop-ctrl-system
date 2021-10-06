@@ -1,5 +1,7 @@
 class Config(object):
-    """Configuration Class
+    """Config
+
+    This is a naïve configuration object and largely not used
     """
     raspi_service_host = '0.0.0.0'
     raspi_service_port = 5001

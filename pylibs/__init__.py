@@ -1,4 +1,4 @@
-    """ [summary]
+""" [summary]
 
     [extended_summary]
-    """
+"""

@@ -11,6 +11,47 @@ class ConfigLoader():
 
     The ConfigLoader helps with the task of seperating code from configuration,
     define configuration(s) in simple JSON files and make the keys and values available to other libs.
+
+    \U0001F4A1 - Keep your version control repository & command history tidy by segregating app code from app configuration!
+
+    \U0001F4D3 - Each ConfigLoader instance has the capability of dynamically adding it's loaded configuration key value pairs as attributes on itself. 
+    This means those values become available as class attributes
+        
+    - load configuration values from a JSON file, JSON string, or python dict object
+    - Easily access configuration data safely and securely
+
+    An example of the supported configuration file structure
+
+        {
+            "database": {
+                "mongo_host": "mongo.io.com",
+                "mongo_port": 27017,
+                "mongo_username": "superuser",
+                "mongo_password": "myhardpassword"
+            },
+            "metrics": {
+                "metrics_host": "0.0.0.0",
+                "metrics_port": 5000,
+            },
+            "pi_service": {
+                "pi_service_host": "0.0.0.0",
+                "pi_service_port": 5001
+            }
+        }
+
+    Examples:
+        from config.config_loader import ConfigLoader
+        config = ConfigLoader(from_file=True,config='settings/config.json')
+        # enhance the object by recursing the config dict and addign k-v pairs as object attributes
+        config.add_attributes()
+
+        # access those values pythonically
+        config.mongo_username
+        config.mongo_password
+        # or ..
+        config.database (the entire database object)
+        config.database['mongo_username']
+        ...
     
     Attributes:
         config (dict): A python dictionary representation of the provided "config" data
@@ -26,13 +67,6 @@ class ConfigLoader():
                  from_object: bool = False,
                  config: Union[dict, str] = None) -> None:
         """__init__ Create a ConfigLoader object
-
-        The Config Loader helps with storing and making available configuration values used in the backend, scripts and development
-
-        \U0001F4A1 - keep your version control repository & command history tidy by segregating app code from app configuration!
-        
-        - load configuration values from a JSON file, JSON string, or python dict object
-        - Easily access configuration data safely and securely
 
         Args:
             from_file (bool, optional): [description]. Defaults to False.
