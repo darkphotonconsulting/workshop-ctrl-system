@@ -183,8 +183,8 @@ def get_engine(a: Namespace):
     return SchemaMigrationEngine(
         mongo_host=a.mongo_host,
         mongo_port=a.mongo_port,
-        admin_user=a.mongo_username,
-        admin_password=a.mongo_password
+        mongo_username=a.mongo_username,
+        mongo_password=a.mongo_password
     )
 
 def list_databases(a: Namespace):

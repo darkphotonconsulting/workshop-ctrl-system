@@ -38,13 +38,13 @@ class DataSeedEngine():
     def __initialize_mongo_connection(cls,
         mongo_host: str,
         mongo_port: int,
-        admin_user: str,
-        admin_password: str
+        mongo_username: str,
+        mongo_password: str
     ) -> MongoClient:
         config = BaseConfig(mongo_host=mongo_host,
                             mongo_port=mongo_port,
-                            mongo_username=admin_user,
-                            mongo_password=admin_password)
+                            mongo_username=mongo_username,
+                            mongo_password=mongo_password)
         return MongoClient(config.mongo_connect_string)
 
     @classmethod 
@@ -134,14 +134,14 @@ class DataSeedEngine():
     def __init__(self, 
         mongo_host: str, 
         mongo_port: int, 
-        admin_user: str,
-        admin_password: str
+        mongo_username: str,
+        mongo_password: str
     ) -> None:
         self.client = self.__class__.__initialize_mongo_connection(
             mongo_host=mongo_host,
             mongo_port=mongo_port,
-            admin_user=admin_user,
-            admin_password=admin_password)
+            mongo_username=mongo_username,
+            mongo_password=mongo_password)
         self.server_info = self.client.server_info()
         self.server_version = self.server_info['version']
         #initialize parameters on self, will be updated

@@ -70,8 +70,8 @@ class SchemaMigrationEngine():
     def __init__(self,
         mongo_host: str,
         mongo_port: int,
-        admin_user: str,
-        admin_password: str
+        mongo_username: str,
+        mongo_password: str
     ) -> None:
         """__init__ create a SchemaMigrationEngine object
 
@@ -82,14 +82,14 @@ class SchemaMigrationEngine():
         Args:
             mongo_host (str): The MongoDB host FQDN or IP
             mongo_port (int): The MongoDB port
-            admin_user (str): An administrative user with access to MongoDB
-            admin_password (str): An administrative user with access to MongoDB
+            mongo_username (str): An administrative user with access to MongoDB
+            mongo_password (str): An administrative user with access to MongoDB
         """
         self.client = self.__class__.__initialize_mongo_connection(
             mongo_host=mongo_host,
             mongo_port=mongo_port,
-            admin_user=admin_user,
-            admin_password=admin_password)
+            mongo_username=mongo_username,
+            mongo_password=mongo_password)
         self.server_info = self.client.server_info()
         self.server_version = self.server_info['version']
         #initialize parameters on self, will be updated
@@ -101,24 +101,24 @@ class SchemaMigrationEngine():
     def __initialize_mongo_connection(cls,
         mongo_host: str,
         mongo_port: int,
-        admin_user: str,
-        admin_password: str
+        mongo_username: str,
+        mongo_password: str
     ) -> MongoClient:
         """__initialize_mongo_connection init a connection to MongoDB
 
         Args:
             mongo_host (str): MongoDB host
             mongo_port (int): MongoDB password
-            admin_user (str): MongoDB admin user
-            admin_password (str): MongoDB admin password
+            mongo_username (str): MongoDB admin user
+            mongo_password (str): MongoDB admin password
 
         Returns:
             MongoClient: a MongoClient object connected to requested mongo instance
         """
         config = BaseConfig(mongo_host=mongo_host,
                             mongo_port=mongo_port,
-                            mongo_username=admin_user,
-                            mongo_password=admin_password)
+                            mongo_username=mongo_username,
+                            mongo_password=mongo_password)
         return MongoClient(config.mongo_connect_string)
 
 
@@ -605,6 +605,7 @@ class SchemaMigrationEngine():
 
         else:
             self.__class__.__create_database(client, database_name)
+        return True
 
 
     def drop_database(self,
