@@ -1,11 +1,7 @@
-# {
-#   key: database { 
-#      key:input_arg*: collection-name*,
-#      ... 
-#     }
-# }
-#
-#
+""" constants
+
+This file contains constants frequently referenced by other components in the headunit ecosystem
+"""
 MONGO_STRUCTURE = {
     'static': {
         'system': 'static-system',
