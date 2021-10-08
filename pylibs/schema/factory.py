@@ -94,26 +94,70 @@ def classes_from_schema_template(
 
     Example:
 
-    Nested Templates
-    ```json
+    Nested Template Example (gpios)
+
+    Inputs:
+    
+        ```
+            {
+                'data': {
+                    'title': str,
+                    'descr': str,
+                    'funcs': list,
+                    'boardmap': {
+                        'physical_board': str, 
+                        'gpio_bcm': str, 
+                        'wiring_pi': str
+                    },
+                    'header_col': int,
+                    'header_row': int,
+                    'label': str
+                }
+            }
+        ```
+
+    Process:
+    
+        Decoding this template to classes looks something like:
+
+        import pylibs.schema.factory
+        from pylibs.schema.default_schemas import SchemaFactory
+        schema_factory = SchemaFactory()
+        gpios = schema_factory.get_default_schema_template(
+            schema_type='static',
+            schema_template_name='gpios'
+        )
+        gpio_classes  = pylibs.schema.factory.classes_from_schema_template(
+            schema_template=gpios,
+        )
+
+    Outputs:
+    
+        In [0]: gpio_classes
+        Out[0]: 
         {
-            'data': {
-                'title': str,
-                'descr': str,
-                'funcs': list,
-                'boardmap': {
-                    'physical_board': str, 
-                    'gpio_bcm': str, 
-                    'wiring_pi': str
-                },
-                'header_col': int,
-                'header_row': int,
-                'label': str
+            'Data': {
+                'Data': mongoengine.base.metaclasses.Data,
+                'Boardmap': {
+                    'Boardmap': mongoengine.base.metaclasses.Boardmap
+                }
             }
         }
-    ```
 
-    To these classes
+        In [1]: gpio_classes['Data']['Boardmap']['Boardmap']
+        Out[1]: mongoengine.base.metaclasses.Boardmap
+
+        In [2]: BoardMap.__name__
+        Out[2]: 'Boardmap'
+
+        In [3]: BoardMap.wiring_pi
+        Out[3]: <mongoengine.fields.StringField at 0xb217e350>
+        
+        
+        
+
+        
+    Outputs
 
     class DataUserDocument(Document):
         title = StringField()
@@ -185,10 +229,10 @@ def classes_from_schema_template(
 
 
 
-my_fields = fields_from_schema_template(
-   schema_template=gpios,
-)
+# my_fields = fields_from_schema_template(
+#    schema_template=gpios,
+# )
 
-print(gpios)
-print(my_fields)
-print(type(my_fields))
+# print(gpios)
+# print(my_fields)
+# print(type(my_fields))
