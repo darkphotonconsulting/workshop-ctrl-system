@@ -1,5 +1,5 @@
 import os
-import sys 
+import sys
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 libs = "/".join(current_dir.split('/')[0:-2])
@@ -22,11 +22,9 @@ from mongoengine import (
     DynamicField
 )
 
+# development, testing
 from pylibs.schema.default_schemas import SchemaFactory
-
-
 schema_factory = SchemaFactory()
-
 system = schema_factory.get_default_schema_template(
     schema_type='static',
     schema_template_name='system'
@@ -35,6 +33,7 @@ gpios = schema_factory.get_default_schema_template(
     schema_type='static',
     schema_template_name='gpios'
 )
+####
 
 def class_factory(
     class_name: str = None,
@@ -51,50 +50,145 @@ def class_factory(
 
 def field_from_template_value(key,value):
     if value is str:
-        return (key, StringField())
+        return StringField()
     elif value is int:
-        return (key, IntField())
+        return IntField()
     elif value is bool:
-        return (key, BooleanField())
+        return BooleanField()
     elif value is list:
-        return (key, ListField())
+        return ListField()
     elif value is dict:
-        return (key, EmbeddedDocumentField())
+        return EmbeddedDocumentField()
     else:
-        return (key, DynamicField())
+        return DynamicField()
 
 
 def fields_from_schema_template(
     schema_template: dict = None,
-    fields: list = None,
-    embedded_fields: list = None
+    field_data: dict = None,
 ):
-    if fields is None:
-        fields = []
-    if embedded_fields is None:
-        embedded_fields = []
-        
-    for key, value in schema_template.items(): # iterate each key and value at this level of the schema
+    if field_data is None:
+        field_data = {}
 
-        #print(f"key: {key} value: {value} type: {type(value)}")
-        if value in [str, int, list, bool]:
-            fields.append(
-                field_from_template_value(key=key, value=value)
-            )
-            #return fields
-        if isinstance(value, dict): #recurse into the dict value
-            fields.append(fields_from_schema_template(schema_template=value))
-            return fields
-            #return fields
-        # else: #setup 
-        #     fields.append(field_from_template_value(key=key, value=value))
-        #     print(fields)
-            #return fields
-    return fields
+    if isinstance(schema_template, dict):
+        for key, value in schema_template.items(): # iterate each key and value at this level of the schema
+            if value in [str, int, list, bool]:
+                field_data[key] = field_from_template_value(key=key,
+                                                            value=value)
+            elif isinstance(value, dict):  #recurse into the dict value
+                field_data[key] = {}
+                field_data[key] = fields_from_schema_template(
+                    schema_template=value)
+    return field_data
+
+def classes_from_schema_template(
+    schema_template: dict = None,
+    base_classes: list = None,
+    classes: dict = None,
+    class_name: str = None,
+    class_name_prefix: str = None,
+    fields: dict = None,
+):
+    """classes_from_schema_template Returns a list of dynamically generated mongoengine Document classes that represent the provided schema
+    
+
+    Example:
+
+    Nested Templates
+    ```json
+        {
+            'data': {
+                'title': str,
+                'descr': str,
+                'funcs': list,
+                'boardmap': {
+                    'physical_board': str, 
+                    'gpio_bcm': str, 
+                    'wiring_pi': str
+                },
+                'header_col': int,
+                'header_row': int,
+                'label': str
+            }
+        }
+    ```
+
+    To these classes
+
+    class DataUserDocument(Document):
+        title = StringField()
+        ...
+
+    class BoardmapDocument(DataUserDocument)
+        wiring_pi = IntField()
+        ...
+
+    Args:
+        schema_template (dict, optional): [description]. Defaults to None.
+        base_classes (list, optional): [description]. Defaults to None.
+        classes (list, optional): [description]. Defaults to None.
+        class_name_prefix (str, optional): [description]. Defaults to None.
+        fields (dict, optional): [description]. Defaults to None.
+
+    Returns:
+        [type]: [description]
+    """
+    if class_name is None:
+        class_name = ""
+    if base_classes is None:
+        base_classes = [Document]
+    if classes is None:
+        classes = {}
+
+    if isinstance(schema_template, dict): #the schema_template object is a dict
+        for key, value in schema_template.items():
+            if value in [str, int, bool, list]: # keys are not dict values
+
+                #print(f"{class_name} {class_name_prefix}")
+                fields = fields_from_schema_template(schema_template=schema_template)
+                class_title = f"{class_name_prefix.capitalize() if class_name_prefix is not None else ''}{class_name.capitalize()}"
+                print(
+                    f"non-dict branch: current_class  '{class_title}' ->  existing classes  '{list(classes.keys())}'  <- on key: '{key}' with value '{value}'"
+                )
+                #print(f"class title is: {class_title}")
+                classes[class_name.capitalize()] = class_factory(
+                    class_name=class_title,
+                    base_classes=base_classes,
+                    fields=fields)
+            if isinstance(value, dict): # value is a dict, the current class should have an embedded field representing the "embedded class"
+                fields = fields_from_schema_template(schema_template=value)
+                class_title = f"{class_name_prefix.capitalize() if class_name_prefix is not None else ''}{key.capitalize()}"
+                print(
+                    f"dict branch: current_class  '{class_title}' ->  existing classes  '{list(classes.keys())}'  <- on key: '{key}' with value '{value}'"
+                )
+
+                if len(
+                        list(classes.keys())
+                ) > 0:  # the "parent" class is the last class seen, add an attibute linking key = EmbeddedDocumentField(<lastClass>)
+                    last_key = list(classes.keys())[-1]
+                    parent_class = classes[last_key]
+                    print(f"parent class: {parent_class.boardmap}")
+
+
+
+                classes[key.capitalize()] = classes_from_schema_template(
+                    schema_template=value,
+                    base_classes=[
+                        EmbeddedDocument,
+                    ],
+                    fields=fields,
+                    class_name=class_title,
+                )
+
+                #print('ok...')
+    return classes
+
 
 
 my_fields = fields_from_schema_template(
-    schema_template=gpios,   
+   schema_template=gpios,
 )
 
+print(gpios)
 print(my_fields)
+print(type(my_fields))
