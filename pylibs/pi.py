@@ -17,7 +17,9 @@ class PiInfoEncoder(JSONEncoder):
     """JSON Encoder class for PiInfo objects
 
     @Inherits:
+    
         JSONEncoder : This class inherits from JSONEncoder, overriding the default method
+        
         - allows a PiInfo object to be JSON encoded
     """
     def default(self, object, klass):
@@ -34,35 +36,47 @@ class PiInfo(object):
     Provides a rich data object specfic to the running raspberry pi \U0001F967 
 
     - system info
+    
     - gpios
 
     Examples:
         from pylibs.pi import PiInfo
+        
         piinfo = PiInfo()
 
         # system data
+        
         piinfo.system
 
         # gpio data 
+        
         piinfo.gpios
 
         # much more
+        
         dir(piinfo) 
 
 
     Attributes:
+    
         data (gpiozero.pins.data.PiBoardInfo): the original board info object used to get GPIO and system data
+        
         headers (list): a list of the pin headers present on the board
+        
         system (dict): system data extracted into a dictionary
+        
         pimap (dict): a compiled dictionary with both system and gpio data
+        
         pinmap (dict): a dictionary containing data pertaining to each GPIO
+        
         gpios (list of dict): a list with each item being a gpio dictionary
+        
         poepins (dict): a dictionary mapping poe pin number to pin info object
+        
         gpiopins (dict): a dictionary mapping pin number to pin info object
         
-        
-
     Returns:
+    
         PiInfo: a PiInfo object
     """
 
@@ -154,10 +168,13 @@ class PiInfo(object):
         """Derives pinout URL based on BCM board number and pin label
 
         Args:
+        
             pin (int, optional): Pin number
+            
             label (str, optional): Pin label
 
         Returns:
+        
             str - pinout.xyz URL for given pin
         """
         base_url = "https://pinout.xyz/pinout/"
@@ -176,6 +193,7 @@ class PiInfo(object):
         """pindata - Enriches the PiInfo.gpios entry for each GPIO by scraping pinout.xyz for valuable information
 
         Scrapes pinout.xyz to enrich PiInfo object with mappings of additional data _not_ found from board itself for each pin on the J8 header
+        
             - GPIO functions (PWM, I2C, etc)
             - variant board addresses (BCM, Wiring Pi, Board)
             - description

@@ -86,7 +86,7 @@ class Loginator():
     def set_logger(self,
         logger: logging.Logger
     ) -> None:
-        """[summary]
+        """set_logger - set the logger instance
 
         Args:
             logger (logging.Logger): override the instances logger (untested)

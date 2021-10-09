@@ -1,3 +1,8 @@
+""" factory
+
+Make classes that represent user defined schema templates
+
+"""
 import os
 import sys
 

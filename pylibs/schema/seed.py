@@ -25,6 +25,15 @@ from pylibs.logging.loginator import Loginator
 from pylibs.pi import PiInfo
 from pylibs.relay import RelayInfo
 class DataSeedEngine():
+    """DataSeedEngine [summary]
+
+    Attributes: 
+
+    
+
+    Returns:
+        [type]: [description]
+    """
     logger = logging.getLogger('DataSeedEngine')
     loginator = Loginator(logger=logger)
     logger = loginator.logger
@@ -41,6 +50,19 @@ class DataSeedEngine():
         mongo_username: str,
         mongo_password: str
     ) -> MongoClient:
+        """__initialize_mongo_connection [summary]
+
+        [extended_summary]
+
+        Args:
+            mongo_host (str): [description]
+            mongo_port (int): [description]
+            mongo_username (str): [description]
+            mongo_password (str): [description]
+
+        Returns:
+            MongoClient: [description]
+        """
         config = BaseConfig(mongo_host=mongo_host,
                             mongo_port=mongo_port,
                             mongo_username=mongo_username,
@@ -51,12 +73,29 @@ class DataSeedEngine():
     def __get_server_info(cls,
         client: MongoClient = None
     ) -> dict:
+        """__get_server_info [summary]
+
+        [extended_summary]
+
+        Args:
+            client (MongoClient, optional): [description]. Defaults to None.
+
+        Returns:
+            dict: [description]
+        """
         return client.server_info()
     
     @classmethod    
     def __pretty_print_server_info(cls,
         client: MongoClient = None,
     ) -> None:
+        """__pretty_print_server_info [summary]
+
+        [extended_summary]
+
+        Args:
+            client (MongoClient, optional): [description]. Defaults to None.
+        """
         print(
             json.dumps(
                 cls.__get_server_info(
@@ -69,22 +108,53 @@ class DataSeedEngine():
     @classmethod
     def __piinfo_system(cls,
     ) -> dict:
+        """__piinfo_system [summary]
+
+        [extended_summary]
+
+        Returns:
+            dict: [description]
+        """
         return PiInfo().system
 
     @classmethod
     def __piinfo_gpios(cls,
     ) -> list:
+        """__piinfo_gpios [summary]
+
+        [extended_summary]
+
+        Returns:
+            list: [description]
+        """
         return PiInfo().gpios
 
     @classmethod
     def __relaysinfo(cls,
     ) -> list:
+        """__relaysinfo [summary]
+
+        [extended_summary]
+
+        Returns:
+            list: [description]
+        """
         return RelayInfo().data
     
     @classmethod
     def __load_items_from_file(cls,
         items_file_path: str = None
     ) -> Iterable[Union[list, dict]]:
+        """__load_items_from_file [summary]
+
+        [extended_summary]
+
+        Args:
+            items_file_path (str, optional): [description]. Defaults to None.
+
+        Returns:
+            Iterable[Union[list, dict]]: [description]
+        """
         items = []
         if os.path.exists(items_file_path):
             with open(items_file_path, 'r') as file:
@@ -98,6 +168,16 @@ class DataSeedEngine():
         collection_name: str = None,
         item: dict = None,
     ) -> None:
+        """_insert_item [summary]
+
+        [extended_summary]
+
+        Args:
+            client (MongoClient, optional): [description]. Defaults to None.
+            database_name (str, optional): [description]. Defaults to None.
+            collection_name (str, optional): [description]. Defaults to None.
+            item (dict, optional): [description]. Defaults to None.
+        """
         db = client[database_name]
         collection = db.get_collection(name=collection_name)
         collection.insert_one(
@@ -111,6 +191,16 @@ class DataSeedEngine():
         collection_name: str = None,
         items: list = None,
     ) -> None:
+        """_insert_items [summary]
+
+        [extended_summary]
+
+        Args:
+            client (MongoClient, optional): [description]. Defaults to None.
+            database_name (str, optional): [description]. Defaults to None.
+            collection_name (str, optional): [description]. Defaults to None.
+            items (list, optional): [description]. Defaults to None.
+        """
         db = client[database_name]
         collection = db.get_collection(name=collection_name)
         collection.insert_many(
@@ -124,6 +214,16 @@ class DataSeedEngine():
         collection_name: str = None,
         items: list = None, 
     ) -> None:
+        """_insert_each_item [summary]
+
+        [extended_summary]
+
+        Args:
+            client (MongoClient, optional): [description]. Defaults to None.
+            database_name (str, optional): [description]. Defaults to None.
+            collection_name (str, optional): [description]. Defaults to None.
+            items (list, optional): [description]. Defaults to None.
+        """
         db = client[database_name]
         collection = db.get_collection(name=collection_name)
         for item in items:
@@ -137,6 +237,16 @@ class DataSeedEngine():
         mongo_username: str,
         mongo_password: str
     ) -> None:
+        """__init__ [summary]
+
+        [extended_summary]
+
+        Args:
+            mongo_host (str): [description]
+            mongo_port (int): [description]
+            mongo_username (str): [description]
+            mongo_password (str): [description]
+        """
         self.client = self.__class__.__initialize_mongo_connection(
             mongo_host=mongo_host,
             mongo_port=mongo_port,
@@ -149,6 +259,13 @@ class DataSeedEngine():
 
     def server_info(self,
     ) -> dict:
+        """server_info [summary]
+
+        [extended_summary]
+
+        Returns:
+            dict: [description]
+        """
         self.__class__.__pretty_print_server_info(
             client=self.client
         )
@@ -158,6 +275,15 @@ class DataSeedEngine():
         collection_name: str = None,
         item: dict = None
     ):
+        """insert_item [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+            collection_name (str, optional): [description]. Defaults to None.
+            item (dict, optional): [description]. Defaults to None.
+        """
         self.__class__._insert_item(
             client=self.client,
             database_name=database_name,
@@ -170,6 +296,15 @@ class DataSeedEngine():
         collection_name: str = None,
         items: list = None
     ):
+        """insert_items [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+            collection_name (str, optional): [description]. Defaults to None.
+            items (list, optional): [description]. Defaults to None.
+        """
         self.__class__._insert_items(
             client=self.client,
             database_name=database_name,
@@ -182,6 +317,15 @@ class DataSeedEngine():
         collection_name: str = None,
         items: list = None
     ):
+        """insert_each_item [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+            collection_name (str, optional): [description]. Defaults to None.
+            items (list, optional): [description]. Defaults to None.
+        """
         self.__class__._insert_each_item(
             client=self.client,
             database_name=database_name,

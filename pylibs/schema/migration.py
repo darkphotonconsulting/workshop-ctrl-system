@@ -41,17 +41,26 @@ class SchemaMigrationEngine():
 
     Class Attributes:
         logger (logging.logger) - a loginator juiced instance logger associated with this class
+        
         loginator (Loginator) - the loginator instance
+        
         DEFAULT_FILE_MAP (dict) - default mappings for file exports TODO: deprecate
+        
         DEFAULT_MONGO_STRUCTURE (dict) - default layout for mongodb TODO: deprecate
+        
         SUPPORTED_STATIC_SCHEMAS (list) - list of supported schemas TODO: deprecate
+        
         SUPPORTED_DYNAMIC_SCHEMAS (list) - TODO: deprecate
         
     Attributes:
         client (MongoClient) - the mongoclient connection associated with this engine instance
+
         server_info (dict) - the server_info dictionary returned from the client connection 
+        
         server_version (str) - the version of the mongodb connected to
+        
         schema_template (dict) - by default an empty dictionary
+        
         schema (dict) - by default an empty dictionary
     """
     # setup the loginator alligator =)
@@ -79,10 +88,14 @@ class SchemaMigrationEngine():
             This is because this class expects to create top level objects such as dbs, and then collections under them.
 
             TODO: support attaching users to any created db by passing in some type of JSON string/file, etc.
+            
         Args:
             mongo_host (str): The MongoDB host FQDN or IP
+            
             mongo_port (int): The MongoDB port
+            
             mongo_username (str): An administrative user with access to MongoDB
+            
             mongo_password (str): An administrative user with access to MongoDB
         """
         self.client = self.__class__.__initialize_mongo_connection(
@@ -107,12 +120,17 @@ class SchemaMigrationEngine():
         """__initialize_mongo_connection init a connection to MongoDB
 
         Args:
+        
             mongo_host (str): MongoDB host
+            
             mongo_port (int): MongoDB password
+            
             mongo_username (str): MongoDB admin user
+            
             mongo_password (str): MongoDB admin password
 
         Returns:
+        
             MongoClient: a MongoClient object connected to requested mongo instance
         """
         config = BaseConfig(mongo_host=mongo_host,
@@ -132,9 +150,11 @@ class SchemaMigrationEngine():
 
         Args:
             client (MongoClient): a MongoClient
+            
             key (str, optional): when provided only return the requested key from the list of dicts. Defaults to None.
 
         Returns:
+        
             list: this may be a list of dicts or a list of Any based on the value of `key`
         """
         dbs = [db for db in client.list_databases()]
@@ -159,12 +179,14 @@ class SchemaMigrationEngine():
         [extended_summary]
 
         Args:
-            client (MongoClient): [description]
-            database_name (str): [description]
-            key (str, optional): [description]. Defaults to None.
+            client (MongoClient): A pymongo MongoClient
+            
+            database_name (str): the database name
+            
+            key (str, optional): Specific key to return in each item. Defaults to None.
 
         Returns:
-            list: [description]
+            list: list of collections if any
         """
         db = client[database_name]
         collections = [
@@ -185,6 +207,21 @@ class SchemaMigrationEngine():
         database_name: str = None,
         collection_name: str = None,
     ) -> list:
+        """__list_items list items in mongoDB collection
+
+
+        Args:
+        
+            client (MongoClient): a pymongo MongoClient
+            
+            database_name (str, optional): the database name. Defaults to None.
+            
+            collection_name (str, optional): the collection name. Defaults to None.
+
+        Returns:
+        
+            list: a list of items in collection, if any
+        """
         if cls.__database_exists(client=client,
                                             database_name=database_name):
             if cls.__collection_exists(
@@ -203,6 +240,18 @@ class SchemaMigrationEngine():
         client: MongoClient,
         database_name: str
     ) -> bool:
+        """__database_exists checks if database exists
+
+
+        Args:
+            client (MongoClient): a MongoClient
+            
+            database_name (str): the database name
+
+        Returns:
+        
+            bool: True if exists, False if not
+        """
         dbs = [db for db in client.list_databases()]
         if database_name in [db['name'] for db in dbs]:
             cls.logger.info(f"database [{database_name}] exists")
@@ -214,7 +263,19 @@ class SchemaMigrationEngine():
 
     @classmethod
     def __collection_exists(cls, client: MongoClient, database_name: str,
-                            collection_name: str) -> bool:
+        collection_name: str
+    ) -> bool:
+        """__collection_exists check if collection exists
+
+
+        Args:
+            client (MongoClient): a MongoClient
+            database_name (str): the database name
+            collection_name (str): the collection name
+
+        Returns:
+            bool: True if exists, False if not
+        """
         db = client[database_name]
         collections = [
             collection['name'] for collection in db.list_collections()
@@ -235,6 +296,17 @@ class SchemaMigrationEngine():
         client: MongoClient,
         database_name: str
     ) -> Database:
+        """__get_database return a reference to a mongodb database
+
+
+        Args:
+            client (MongoClient): a pymongo MongoClient
+            
+            database_name (str): the database name
+
+        Returns:
+            Database: a pymongo database
+        """
         if cls.__database_exists(
             client=client,
             database_name=database_name,
@@ -251,6 +323,20 @@ class SchemaMigrationEngine():
         database_name: str = None,
         collection_name: str = None,                   
     ) -> Collection:
+        """__get_collection return a reference to a mongodb collection
+
+        Args:
+        
+            client (MongoClient): Pymongo MongoClient
+            
+            database_name (str, optional): the database name. Defaults to None.
+            
+            collection_name (str, optional): the collection name. Defaults to None.
+
+        Returns:
+        
+            Collection: a pymongo collection
+        """
         if cls.__database_exists(
             client=client,
             database_name=database_name,
@@ -282,6 +368,18 @@ class SchemaMigrationEngine():
         client: MongoClient,
         database_name: str
     ) -> bool:
+        """__create_database create a mongodb database
+
+
+        Args:
+            client (MongoClient): a pymongo MongoClient
+            
+            database_name (str): the database name
+
+        Returns:
+        
+            bool: True if created, False if not
+        """
         dbs = [db['name'] for db in client.list_databases()]
         if database_name not in dbs:
             cls.logger.info(f"creating the requested database [{database_name}]")
@@ -340,9 +438,32 @@ class SchemaMigrationEngine():
                             create_if_not_exist: bool = False,
                             debug: bool = False,
     ) -> bool:
+        """__create_collection Create a MongoDB Collection
 
-        if cls.__database_exists(client, database_name=database_name):
-            # get db reference, it exists
+        - 
+
+        Args:
+        
+            client (MongoClient): a pymongo MongoClient
+            
+            database_name (str, optional): the database name. Defaults to None.
+            
+            collection_name (str, optional): the collection name. Defaults to None.
+            
+            custom_schema (dict, optional): custom schema. Defaults to None.
+            
+            use_schema (bool, optional): use schema, if custom_schema if None, defaults are used. Defaults to False.
+            
+            create_if_not_exist (bool, optional): create database if it does not exist. Defaults to False.
+            
+            debug (bool, optional): output additional messages. Defaults to False.
+
+        Returns:
+        
+            bool: True if collection created, False if not
+        """
+
+        if cls.__database_exists(client, database_name=database_name): # get db reference, it exists
             db = cls.__get_database(
                 client,
                 database_name=database_name
@@ -350,10 +471,10 @@ class SchemaMigrationEngine():
             if cls.__collection_exists(client, database_name=database_name, collection_name=collection_name): # the collection already exists
                 cls.logger.warning(f"The collection [{collection_name}] already exists in [{database_name}]")
                 return False
-            else: # no such collection
+            else: # the collection does not exist
                 if use_schema: # using a schema
                     cls.logger.debug(f"Using validation schemas") if debug else None
-                    if custom_schema is None: # use default schema
+                    if custom_schema is None: # no schema provided, use default schema
                         cls.logger.debug(
                             f"Using default schema_template for [{collection_name}]"
                         ) if debug else None
@@ -422,6 +543,22 @@ class SchemaMigrationEngine():
         collection_name: str,
         wipe_items: bool = True,
     ) -> bool:
+        """__drop_collection drop a mongodb collection
+
+
+
+        Args:
+            client (MongoClient): a pymongo MongoClient
+            
+            database_name (str): the database name
+            
+            collection_name (str): the collection name
+            
+            wipe_items (bool, optional): if True, delete collection if it contains items, if False, do not. Defaults to True.
+
+        Returns:
+            bool: [description]
+        """
         db = client[database_name]
         collections = [
             collection for collection in db.list_collections()
@@ -453,12 +590,15 @@ class SchemaMigrationEngine():
     def __get_schema_template(cls,
         schema_template_name: str = None
     ) -> dict:
-        """Returns schema from default schemas templates
+        """__get_schema_template Returns schema from default schemas templates
+        
         Args:
-            schema_template_name ([str]): The name of the schema template 
+        
+            schema_template_name (str): The name of the schema template 
 
         Returns:
-            [dict]: Python dictionary representation of mongo schema template
+        
+            dict: a Python dictionary representation of mongo schema template
         """
         #create a default
         schema_template = {
@@ -483,14 +623,16 @@ class SchemaMigrationEngine():
     def __compile_schema_template(cls,
         schema_template: dict = None
     ) -> dict:
-        """Compiles a Mongo DB compliant validator schema from the user selected schema template object, 
+        """__compile_schema_template Compiles a Mongo DB compliant validator schema from the user selected schema template object, 
         This is used when creating the initial database resources in MongoDB and defines the data types of the attributes within each collection
 
         Args:
-            schema_template dict: The dict reprsentation of the mongo schema template
+        
+            schema_template (dict): The dict reprsentation of the mongo schema template
 
         Returns:
-            dict: compiled validator schema python object
+        
+            validator (dict): compiled validator schema python object
         """
         factory = SchemaFactory()
         validator = copy(factory.validator)
@@ -501,6 +643,15 @@ class SchemaMigrationEngine():
     def __compile_schema_template_from_file(cls,
         schema_template_file: str = None
     ) -> dict:
+        """__compile_schema_template_from_file compile a schema template previously serialized to JSON file
+
+
+        Args:
+            schema_template_file (str, optional): the serialized schema template JSON file. Defaults to None.
+
+        Returns:
+            validator (dict): the compiled schema object
+        """
         factory = SchemaFactory()
         validator = copy(factory.validator)
         schema = factory.compile_schema_template_from_file(schema_template_path=schema_template_file)
@@ -510,6 +661,8 @@ class SchemaMigrationEngine():
     @classmethod
     def __pretty_print_defined_schemas(cls,
     ) ->None: 
+        """__pretty_print_defined_schemas print defined schemas
+        """
         factory = SchemaFactory()
         print(json.dumps(
             factory.list_default_schemas(),
@@ -521,6 +674,16 @@ class SchemaMigrationEngine():
     def list_databases(self,
         key: bool =None
     ) -> list:
+        """list_databases 
+
+
+
+        Args:
+            key (bool, optional): [description]. Defaults to None.
+
+        Returns:
+            list: [description]
+        """
         client = self.client
         return self.__class__.__list_databases(client, key)
 
@@ -528,6 +691,17 @@ class SchemaMigrationEngine():
         database_name: str = None,
         key: bool = None,
     ) -> list:
+        """list_collections [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+            key (bool, optional): [description]. Defaults to None.
+
+        Returns:
+            list: [description]
+        """
         client = self.client
         return self.__class__.__list_collections(client=client,
                                                  database_name=database_name,
@@ -537,6 +711,17 @@ class SchemaMigrationEngine():
         database_name: str = None,
         collection_name: str = None,
     ) -> list:
+        """list_items [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+            collection_name (str, optional): [description]. Defaults to None.
+
+        Returns:
+            list: [description]
+        """
         client = self.client
         return self.__class__.__list_items(
             client=client,
@@ -548,6 +733,17 @@ class SchemaMigrationEngine():
         database_name: str = None,
         collection_name: str = None,
     ) -> Collection:
+        """get_collection [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+            collection_name (str, optional): [description]. Defaults to None.
+
+        Returns:
+            Collection: [description]
+        """
         client = self.client
         if self.__class__.__collection_exists(
             client=client, 
@@ -568,6 +764,16 @@ class SchemaMigrationEngine():
     def get_database(self,
         database_name: str = None
     ) -> Database:
+        """get_database [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+
+        Returns:
+            Database: [description]
+        """
         client = self.client
         if self.__class__.__database_exists(client, database_name):
             return self.__class__.__get_database(client, database_name)
@@ -577,6 +783,16 @@ class SchemaMigrationEngine():
     def database_exists(self,
         database_name: str = None
     ) -> bool:
+        """database_exists [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+
+        Returns:
+            bool: [description]
+        """
         client = self.client
         if self.__class__.__database_exists(client, database_name):
             return True
@@ -588,6 +804,17 @@ class SchemaMigrationEngine():
         database_name: str = None,
         drop: bool = False
     ) -> bool:
+        """create_database [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+            drop (bool, optional): [description]. Defaults to False.
+
+        Returns:
+            bool: [description]
+        """
         client = self.client
         if self.__class__.__database_exists(client, database_name):
             if drop:
@@ -611,6 +838,16 @@ class SchemaMigrationEngine():
     def drop_database(self,
         database_name: str = None
     ) -> bool:
+        """drop_database [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+
+        Returns:
+            bool: [description]
+        """
         client = self.client
         if self.__class__.__database_exists(client, database_name):
             self.__class__.__drop_database(client, database_name)
@@ -629,6 +866,22 @@ class SchemaMigrationEngine():
         create_if_not_exist: bool = False,
         debug: bool = True,
     ) -> bool:
+        """create_collection [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+            collection_name (str, optional): [description]. Defaults to None.
+            custom_schema (dict, optional): [description]. Defaults to None.
+            use_schema (bool, optional): [description]. Defaults to False.
+            drop (bool, optional): [description]. Defaults to False.
+            create_if_not_exist (bool, optional): [description]. Defaults to False.
+            debug (bool, optional): [description]. Defaults to True.
+
+        Returns:
+            bool: [description]
+        """
         client = self.client
         if use_schema: #using a schema
             if custom_schema is not None: # set schema based on provided dict
@@ -675,6 +928,17 @@ class SchemaMigrationEngine():
         database_name: str = None,
         collection_name: str = None,
     ) -> bool:
+        """drop_collection [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+            collection_name (str, optional): [description]. Defaults to None.
+
+        Returns:
+            bool: [description]
+        """
         client = self.client
         if self.__class__.__collection_exists(
             client=client,
@@ -695,6 +959,10 @@ class SchemaMigrationEngine():
 
     def print_defined_schemas(self,
     ) -> None:
+        """print_defined_schemas [summary]
+
+        [extended_summary]
+        """
         self.__class__.__pretty_print_defined_schemas()
         
     def get_schema(
@@ -703,6 +971,18 @@ class SchemaMigrationEngine():
         collection_name: str = None,
         pretty_print: bool = False
     ) -> dict:
+        """get_schema [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+            collection_name (str, optional): [description]. Defaults to None.
+            pretty_print (bool, optional): [description]. Defaults to False.
+
+        Returns:
+            dict: [description]
+        """
         if database_name is None:
             database_name = 'static'
         #print(self.DEFAULT_MONGO_STRUCTURE)
@@ -729,6 +1009,18 @@ class SchemaMigrationEngine():
         collection_name: str = None,
         pretty_print: bool = False,
     ) -> dict:
+        """get_default_schema_template [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+            collection_name (str, optional): [description]. Defaults to None.
+            pretty_print (bool, optional): [description]. Defaults to False.
+
+        Returns:
+            dict: [description]
+        """
         if database_name is None:
             database_name = 'static'
 

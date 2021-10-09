@@ -24,7 +24,9 @@ class MigrationEncoder(JSONEncoder):
     - The override allows UUIDs and ObjectIds to be serialized properly 
 
     """
-    def default(self, object):
+    def default(self, 
+        object
+    ):
         """default - a function that gets called for objects that can’t otherwise be serialized. 
 
         It should return a JSON encodable version of the object or raise a TypeError. If not specified, TypeError is raised.
@@ -79,7 +81,9 @@ class SchemaTemplateEncoder(JSONEncoder):
     - The encoder supports any type which has a `__name__` attribute
     """
 
-    def default(self, object):
+    def default(self, 
+        object
+    ):
         """default - a function that gets called for objects that can’t otherwise be serialized. 
 
         It should return a JSON encodable version of the object or raise a TypeError. If not specified, TypeError is raised.

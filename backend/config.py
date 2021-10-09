@@ -206,25 +206,29 @@ class ProductionConfig(object):
     raspi_service_port = 5001
     metrics_service_host = '0.0.0.0'
     metrics_service_port = 5002
-    #mongo_host = 'mongo.darkphotonworks-labs.io'
-    #mongo_port = 27017
+
 
     def __init__(self,
                  mongo_host: str = None,
                  mongo_port: int = None,
                  mongo_username: str = None,
                  mongo_password: str = None,
-                 **kwargs):
+                 **kwargs
+    ) -> None:
+        """__init__ Create a basic Config object
 
-        if mongo_host is None:
-            self.mongo_host = 'mongo.darkphotonworks-labs.io'
-        else:
-            self.mongo_host = mongo_host
-        if mongo_port is None:
-            self.mongo_port = 27017
-        else:
-            self.mongo_port = mongo_port
+        [extended_summary]
 
+        Args:
+            mongo_host (str, optional): MongoDB host. Defaults to None.
+            mongo_port (int, optional): MongoDB port. Defaults to None.
+            mongo_username (str, optional): MongoDB username. Defaults to None.
+            mongo_password (str, optional): MongoDB password. Defaults to None.
+        """
+
+        self.mongo_host = 'mongo.darkphotonworks-labs.io' if mongo_host is None else mongo_host
+        self.mongo_port = 27017 if mongo_port is None else mongo_port
+        
         if mongo_username is not None and mongo_password is not None:
             self.mongo_username = urllib.parse.quote_plus(mongo_username)
             self.mongo_password = urllib.parse.quote_plus(mongo_password)

@@ -20,14 +20,19 @@ class SchemaTemplateDecoder(json.JSONDecoder):
 
     - The override allows the string type values found in a serialized template file to be decoded into a native python object
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, 
+        *args, 
+        **kwargs
+    ):
         """__init__ Patches the __init__ method of json.JSONDecoder
 
         [extended_summary]
         """
         json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
 
-    def object_hook(self, obj):
+    def object_hook(self, 
+        obj
+    ):
         """object_hook - is an optional function that will be called with the result of any object literal decoded (a dict). 
         
         - The return value of object_hook will be used instead of the dict. 

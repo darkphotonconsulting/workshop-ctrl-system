@@ -151,7 +151,8 @@ class SchemaFactory(object):
     logger = loginator.logger
     nested = False
     last_seen = None
-    def __init__(self):
+    def __init__(self,
+    ):
         """__init__ Create a SchemaFactory object
 
         """
@@ -164,7 +165,9 @@ class SchemaFactory(object):
         }
 
 
-    def pretty_print(self, it: dict) -> None:
+    def pretty_print(self, 
+        it: dict
+    ) -> None:
         """Pretty print schemas or schema templates
 
         Args:
