@@ -8,8 +8,10 @@ repos:
     -   id: shellcheck
         stages: [commit]
         files: ".*.sh"
-    -   id: shfmt
-        stages: [commit]
+        args: [--exclude=SC1117]
+    # -   id: shfmt
+    #     stages: [commit]
+        
 -   repo: https://github.com/compilerla/conventional-pre-commit
     rev: main
     hooks:
