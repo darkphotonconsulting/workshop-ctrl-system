@@ -32,3 +32,13 @@ yarn-error.log*
 # ignore pyc files 
 __pycache__
 *.pyc
+
+
+# ignore platformio build dirs and areas where compiled binaries may appear
+.pio
+arduino/libraries
+arduino/lib
+arduino/include
+arduino/src
+arduino/test
+build-*
