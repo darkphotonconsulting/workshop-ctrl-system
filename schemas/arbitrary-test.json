@@ -1,0 +1,8 @@
+{
+    "foo": "list",
+    "bar": "int",
+    "goo": {
+        "bar": "list",
+        "foo": "str"
+    }
+}

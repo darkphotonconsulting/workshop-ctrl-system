@@ -1,0 +1,43 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "properties": {
+      "manufacturer": {
+        "bsonType": "string"
+      },
+      "system": {
+        "bsonType": "string"
+      },
+      "model": {
+        "bsonType": "string"
+      },
+      "revision": {
+        "bsonType": "string"
+      },
+      "soc": {
+        "bsonType": "string"
+      },
+      "pcb_revision": {
+        "bsonType": "string"
+      },
+      "memory": {
+        "bsonType": "int"
+      },
+      "storage": {
+        "bsonType": "string"
+      },
+      "ethernet_speed": {
+        "bsonType": "int"
+      },
+      "usb_ports": {
+        "bsonType": "int"
+      },
+      "usb3_ports": {
+        "bsonType": "int"
+      },
+      "board_headers": {
+        "bsonType": "array"
+      }
+    }
+  }
+}

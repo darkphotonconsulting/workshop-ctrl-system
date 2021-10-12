@@ -1,0 +1,15 @@
+{
+  "data": {
+    "title": "str",
+    "descr": "str",
+    "funcs": "list",
+    "boardmap": {
+      "Physical/Board": "str",
+      "GPIO/BCM": "str",
+      "Wiring Pi": "str"
+    },
+    "header_col": "int",
+    "header_row": "int",
+    "label": "str"
+  }
+}
