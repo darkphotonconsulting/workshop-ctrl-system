@@ -1,5 +1,5 @@
 #!/bin/bash -e
-
+# shellcheck disable=SC1117
 set -o pipefail 
 find /sys/bus/usb/devices/usb*/ -name dev -print0 | while IFS= read -r -d '' sysdevpath; do 
     printf "top: %s\n" "$sysdevpath"
