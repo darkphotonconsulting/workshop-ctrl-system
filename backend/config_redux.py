@@ -5,7 +5,8 @@ libs = "/".join(current_dir.split('/')[0:-1])
 sys.path.append(libs)
 
 #import urllib.parse
-from urllib import parse
+#import urllib.parse
+from urllib.parse import quote_plus
 import abc
 
 from attr import has
@@ -15,7 +16,9 @@ from pylibs.logging.loginator import Loginator
 from pymongo import MongoClient
 from pymongo.errors import OperationFailure, ConnectionFailure
 
+#custom exceptions?
 
+        
 class Configuration(object, metaclass=abc.ABCMeta):
     """Configuration Configuration Base Class
 
@@ -41,9 +44,9 @@ class Configuration(object, metaclass=abc.ABCMeta):
         Configuration: A configuration object
     """
     #__metaclass__ = abc.ABCMeta
-    logger = logging.getLogger('Configuration')
-    loginator = Loginator(logger=logger)
-    logger = loginator.logger
+    logger: logging.Logger = logging.getLogger('Configuration')
+    loginator: Loginator = Loginator(logger=logger)
+    logger: logging.Logger = loginator.logger
 
     @classmethod
     def __reconfigure_logger(cls,
@@ -54,9 +57,9 @@ class Configuration(object, metaclass=abc.ABCMeta):
         Returns:
             logging.Logger: logger object
         """
-        logger = logging.getLogger(cls.__name__)
-        loginator = Loginator(logger=logger)
-        logger = loginator.logger
+        logger: logging.Logger = logging.getLogger(cls.__name__)
+        loginator: Loginator = Loginator(logger=logger)
+        logger: logging.Logger = loginator.logger
         return logger
 
     def __init__(
@@ -109,27 +112,28 @@ class Configuration(object, metaclass=abc.ABCMeta):
             metrics_host (str, optional): MetricsService FQDN or IP. Defaults to None.
             metrics_port (int, optional): MetricsService Port. Defaults to None.
         """
-
+        self.__class__.logger = self.__class__.__reconfigure_logger()
         if mongo_username is None and mongo_password is None: # no auth provided
-            self.__class__.logger.warning("warning: the configuration object is using no auth")
-            self.mongo_username = "unset"
-            self.mongo_password = "unset"
+            self.__class__.logger.warning("neither mongo_username or mongo_password were provided, the connection will not use authentication")
+            self.mongo_username: str = "unset"
+            self.mongo_password: str = "unset"
         else: # use provided auth values
             # url parse values so the constructed connection string is valid
-            self.mongo_username = parse(mongo_username)
-            self.mongo_password = parse(mongo_password)
+            self.mongo_username: str = quote_plus(mongo_username)
+            self.mongo_password: str = quote_plus(mongo_password)
 
         # reconfigure logger
-        self.__class__.logger = self.__class__.__reconfigure_logger()
+        
         # defaults for connecting to mongoDB
-        self.mongo_host = '127.0.0.1' if mongo_host is None else mongo_host
-        self.mongo_port = 27017 if mongo_port is None else mongo_port
-        self.mongo_database = None if mongo_database is None else mongo_database
+        self.__class__.logger.warning("mongo_host was not provided, assuming a mongo database is running locally on 127.0.0.1") if mongo_host is None else None
+        self.mongo_host: str = '127.0.0.1' if mongo_host is None else mongo_host
+        self.mongo_port: int = 27017 if mongo_port is None else mongo_port
+        self.mongo_database: str = None if mongo_database is None else mongo_database
         # defaults for sidecars
-        self.pi_host = '127.0.0.1' if pi_host is None else pi_host
-        self.pi_port = 5000 if pi_port is None else pi_port
-        self.metrics_host = '127.0.0.1' if metrics_host is None else metrics_host
-        self.metrics_port = 5001 if metrics_port is None else metrics_port
+        self.pi_host: str = '127.0.0.1' if pi_host is None else pi_host
+        self.pi_port: int = 5000 if pi_port is None else pi_port
+        self.metrics_host: str = '127.0.0.1' if metrics_host is None else metrics_host
+        self.metrics_port: int = 5001 if metrics_port is None else metrics_port
 
 
     # getters/setters
