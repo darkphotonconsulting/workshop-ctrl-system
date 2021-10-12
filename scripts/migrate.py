@@ -17,6 +17,8 @@ from pylibs.schema.migration import SchemaMigrationEngine
 from pylibs.logging.loginator import Loginator
 from argparse import ArgumentParser, Namespace
 from pylibs.schema.default_schemas import SchemaFactory
+from pylibs.constants.constants import MONGO_STRUCTURE, STOP_CODES
+
 logger = logging.getLogger('Main')
 loginator = Loginator(
     logger=logger
@@ -25,12 +27,7 @@ logger = loginator.logger
 
 parser = ArgumentParser(prog='HeadUnit Schema Migration Tool')
 
-stop_codes= {
-    'SUCCESS': 0,
-    'ARGUMENTS': 1,
-    'EXECUTION_ERROR': -1,
-
-}
+#STOP_CODES=STOP_CODES
 
 
 class MigrationEncoder(json.JSONEncoder):
@@ -100,7 +97,11 @@ action_args.add_argument('--debug',
 action_args.add_argument('--use-default-schemas',
     action='store_true',
     required=False,
-    help='Collections will be created using the default schema items [system, gpios, relays], the --collection-name MUST be system, gpios, or relays'
+    help=f"""
+    Collections will be created using the default schemas defined in the libs 
+    --database-name must be system or dynamic
+    --collection-name must be ....
+    """
 )
 action_args.add_argument('--database-name',
     action='store',
@@ -141,6 +142,14 @@ action_args.add_argument('--print-defined-schema',
     Print a default schema, must set [--database-name <dbName> --collection-name <collName>]\n
     the top level key schema_type is the database\n
     the next level key is the scheme_template_name (see [--list-defined-schemas])
+    """
+)
+action_args.add_argument('--print-mongo-structure',
+    action='store_true',
+    required=False,
+    help=f"""
+    Visualize the mongodb structure resultant of using migrate with the defaults
+    - useful for knowing valid arguments that can be passed as [--collection-name] and [--database-name]
     """
 )
 action_args.add_argument('--count-items',
@@ -196,8 +205,8 @@ def list_databases(a: Namespace):
         logger.warning(databases)
     else:
         logger.warning("unsupported data type returned from a list operation")
-        exit(stop_codes['EXECUTION_ERROR'])
-    exit(stop_codes['SUCCESS'])
+        exit(STOP_CODES['EXECUTION_ERROR'])
+    exit(STOP_CODES['SUCCESS'])
 
 
 def list_collections(a: Namespace):
@@ -207,7 +216,7 @@ def list_collections(a: Namespace):
             f"please set the [--database-name] with a valid value to use --list-collections"
         )
         parser.print_help()
-        exit(stop_codes['ARGUMENTS'])
+        exit(STOP_CODES['ARGUMENTS'])
     else:
         collections = engine.list_collections(database_name=a.database_name,
                                               key=a.list_key)
@@ -218,8 +227,8 @@ def list_collections(a: Namespace):
         else:
             logger.warning(
                 f"unsupported data type returned by collection list operation")
-            exit(stop_codes['EXECUTION_ERROR'])
-        exit(stop_codes['SUCCESS'])
+            exit(STOP_CODES['EXECUTION_ERROR'])
+        exit(STOP_CODES['SUCCESS'])
 
 def list_items(a: Namespace):
     engine = get_engine(a)
@@ -228,14 +237,14 @@ def list_items(a: Namespace):
             f"please set the [--database-name <database_name>] with a valid value to use [--list-items]"
         )
         parser.print_help()
-        exit(stop_codes['ARGUMENTS'])
+        exit(STOP_CODES['ARGUMENTS'])
 
     if a.collection_name == '':
         logger.warning(
             f"please set the [--collection-name <collection_name>] with a valid value to use [--list-items]"
         )
         parser.print_help()
-        exit(stop_codes['ARGUMENTS'])
+        exit(STOP_CODES['ARGUMENTS'])
     items = engine.list_items(
         database_name=a.database_name,
         collection_name=a.collection_name
@@ -255,7 +264,7 @@ def list_items(a: Namespace):
 def list_defined_schemas(a: Namespace):
     engine = get_engine(a)
     engine.print_defined_schemas()
-    exit(stop_codes['SUCCESS'])
+    exit(STOP_CODES['SUCCESS'])
 
 def count_items(a: Namespace) -> dict:
     engine = get_engine(a)
@@ -264,14 +273,14 @@ def count_items(a: Namespace) -> dict:
             f"please set the [--database-name <database_name>] with a valid value to use [--list-items]"
         )
         parser.print_help()
-        exit(stop_codes['ARGUMENTS'])
+        exit(STOP_CODES['ARGUMENTS'])
 
     if a.collection_name == '':
         logger.warning(
             f"please set the [--collection-name <collection_name>] with a valid value to use [--list-items]"
         )
         parser.print_help()
-        exit(stop_codes['ARGUMENTS'])
+        exit(STOP_CODES['ARGUMENTS'])
     items = engine.list_items(database_name=a.database_name,
                               collection_name=a.collection_name)
     items_size = len(items)
@@ -291,10 +300,10 @@ def create_database(a: Namespace):
     if a.database_name == '':
         logger.warning("please set the [--database-name] value")
         parser.print_help()
-        exit(stop_codes['ARGUMENTS'])
+        exit(STOP_CODES['ARGUMENTS'])
     else:
         engine.create_database(a.database_name, drop=a.drop_existing)
-    exit(stop_codes['SUCCESS'])
+    exit(STOP_CODES['SUCCESS'])
 
 def create_collection(a: Namespace):
     engine = get_engine(a)
@@ -303,21 +312,21 @@ def create_collection(a: Namespace):
             f"please set the [--database-name] with a valid value to use --create-collection"
         )
         parser.print_help()
-        exit(stop_codes['ARGUMENTS'])
+        exit(STOP_CODES['ARGUMENTS'])
 
     if a.collection_name == '':
         logger.warning(
             f"please set the [--collection-name] with a valid value to use --create-collection"
         )
         parser.print_help()
-        exit(stop_codes['ARGUMENTS'])
+        exit(STOP_CODES['ARGUMENTS'])
 
     if a.use_default_schemas:
         if a.collection_name not in ['system', 'relays', 'gpios']:
             logger.warning(
                 f"if using [--load-default-schemas] the [--collection-name] argument value MUST be one of 'system', 'relays' or 'gpios'"
             )
-            exit(stop_codes['ARGUMENTS'])
+            exit(STOP_CODES['ARGUMENTS'])
     #if engine.database_exists(database_name=a.database_name): #database exists
     if engine.create_collection(
         database_name=a.database_name,
@@ -340,10 +349,10 @@ def drop_database(a: Namespace):
     if a.database_name == '':
         logger.warning('please set the [--database-name] value')
         parser.print_help()
-        exit(stop_codes['ARGUMENTS'])
+        exit(STOP_CODES['ARGUMENTS'])
     else:
         engine.drop_database(args.database_name)
-    exit(stop_codes['SUCCESS'])
+    exit(STOP_CODES['SUCCESS'])
 
 
 def drop_collection(a: Namespace):
@@ -353,22 +362,22 @@ def drop_collection(a: Namespace):
             f"please set the [--database-name] with a valid value to use --create-collection"
         )
         parser.print_help()
-        exit(stop_codes['ARGUMENTS'])
+        exit(STOP_CODES['ARGUMENTS'])
 
     if a.collection_name == '':
         logger.warning(
             f"please set the [--collection-name] with a valid value to use --create-collection"
         )
         parser.print_help()
-        exit(stop_codes['ARGUMENTS'])
+        exit(STOP_CODES['ARGUMENTS'])
 
     if engine.drop_collection(
         database_name=a.database_name,
         collection_name=a.collection_name
     ):
-        exit(stop_codes['SUCCESS'])
+        exit(STOP_CODES['SUCCESS'])
     else:
-        exit(stop_codes['EXECUTION_ERROR'])
+        exit(STOP_CODES['EXECUTION_ERROR'])
 
 def print_default_schema(a: Namespace):
     engine = get_engine(a)
@@ -390,6 +399,23 @@ def print_default_schema(a: Namespace):
         )
     )
 
+def print_mongo_structure(a: Namespace):
+    print("""
+    ---------------------------------------------
+    \U0001F50D schema definition
+    {
+        "database_name": {
+            "collection_alias": "collection_name"
+        }
+    }
+    ---------------------------------------------
+    """)
+    print(
+        json.dumps(
+            MONGO_STRUCTURE,
+            indent=2
+        )
+    )
 
 def main(a: Namespace):
 
@@ -398,6 +424,23 @@ def main(a: Namespace):
         parser.error("you can not use --drop-existing and --create-if-not-exist together")
 
 
+    # 
+    if a.use_default_schemas or a.print_defined_schema: # if either or is true
+        if a.database_name and a.collection_name:
+            if a.database_name not in ['static', 'dynamic']:
+                logger.warning(f"""
+                    when setting [--use-default-schemas] the following values are acceptable
+                    [--database-name <static OR dynamic>]
+                    [--collection-name <blah>]
+                """)
+        else:
+            logger.warning(f"""
+                
+            """)
+
+    if a.print_mongo_structure:
+        print_mongo_structure(a)
+        
     if a.print_defined_schema:
         if not (
             a.database_name and a.collection_name
