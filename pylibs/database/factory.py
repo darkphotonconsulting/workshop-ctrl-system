@@ -28,7 +28,7 @@ from mongoengine import (
 )
 
 # development, testing
-from pylibs.schema.default_schemas import SchemaFactory
+from pylibs.database.default_schemas import SchemaFactory
 schema_factory = SchemaFactory()
 system = schema_factory.get_default_schema_template(
     schema_type='static',
@@ -125,14 +125,14 @@ def classes_from_schema_template(
     
         Decoding this template to classes looks something like:
 
-        import pylibs.schema.factory
-        from pylibs.schema.default_schemas import SchemaFactory
+        import pylibs.database.factory
+        from pylibs.database.default_schemas import SchemaFactory
         schema_factory = SchemaFactory()
         gpios = schema_factory.get_default_schema_template(
             schema_type='static',
             schema_template_name='gpios'
         )
-        gpio_classes  = pylibs.schema.factory.classes_from_schema_template(
+        gpio_classes  = pylibs.database.factory.classes_from_schema_template(
             schema_template=gpios,
         )
 

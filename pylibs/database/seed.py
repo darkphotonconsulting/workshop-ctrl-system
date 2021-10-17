@@ -18,9 +18,15 @@ from pymongo import (
     MongoClient, )
 from pymongo.database import Database
 from pymongo.collection import Collection
-from pylibs.schema.default_schemas import StaticSchemas, SchemaFactory
+from pylibs.database.default_schemas import StaticSchemas, SchemaFactory
 from pylibs.constants.constants import FILE_MAP, MONGO_STRUCTURE
 from backend.config import BaseConfig
+# replace base config 
+
+from pylibs.config.configuration import (
+    ConfigLoader, 
+    Configuration
+)
 from pylibs.logging.loginator import Loginator
 from pylibs.pi import PiInfo
 from pylibs.relay import RelayInfo
@@ -45,10 +51,7 @@ class DataSeedEngine():
 
     @classmethod
     def __initialize_mongo_connection(cls,
-        mongo_host: str,
-        mongo_port: int,
-        mongo_username: str,
-        mongo_password: str
+        config: Configuration = None
     ) -> MongoClient:
         """__initialize_mongo_connection [summary]
 
@@ -63,11 +66,11 @@ class DataSeedEngine():
         Returns:
             MongoClient: [description]
         """
-        config = BaseConfig(mongo_host=mongo_host,
-                            mongo_port=mongo_port,
-                            mongo_username=mongo_username,
-                            mongo_password=mongo_password)
-        return MongoClient(config.mongo_connect_string)
+        # config = BaseConfig(mongo_host=mongo_host,
+        #                     mongo_port=mongo_port,
+        #                     mongo_username=mongo_username,
+        #                     mongo_password=mongo_password)
+        return MongoClient(config.mongo_connection_string())
 
     @classmethod 
     def __get_server_info(cls,
@@ -144,7 +147,7 @@ class DataSeedEngine():
     @classmethod
     def __load_items_from_file(cls,
         items_file_path: str = None
-    ) -> Iterable[Union[list, dict]]:
+    ) -> Union[list, dict]:
         """__load_items_from_file [summary]
 
         [extended_summary]
@@ -232,39 +235,25 @@ class DataSeedEngine():
             )
         
     def __init__(self, 
-        mongo_host: str, 
-        mongo_port: int, 
-        mongo_username: str,
-        mongo_password: str
+        config: Configuration = None
     ) -> None:
-        """__init__ [summary]
-
-        [extended_summary]
+        """__init__ Initialize a DataSeedEngine
 
         Args:
-            mongo_host (str): [description]
-            mongo_port (int): [description]
-            mongo_username (str): [description]
-            mongo_password (str): [description]
+            config (Configuration): a Configuration object with standard database keys
+
+            
         """
         self.client = self.__class__.__initialize_mongo_connection(
-            mongo_host=mongo_host,
-            mongo_port=mongo_port,
-            mongo_username=mongo_username,
-            mongo_password=mongo_password)
+            config)
         self.server_info = self.client.server_info()
         self.server_version = self.server_info['version']
         #initialize parameters on self, will be updated
         self.database = ""
 
-    def server_info(self,
-    ) -> dict:
-        """server_info [summary]
-
-        [extended_summary]
-
-        Returns:
-            dict: [description]
+    def print_server_info(self,
+    ) -> None:
+        """print_server_info pretty print the server_info object
         """
         self.__class__.__pretty_print_server_info(
             client=self.client

@@ -16,11 +16,16 @@ from pymongo import (
     MongoClient, )
 from pymongo.database import Database
 from pymongo.collection import Collection
-from pylibs.schema.default_schemas import StaticSchemas, DynamicSchemas, SchemaFactory
+from pylibs.database.default_schemas import StaticSchemas, DynamicSchemas, SchemaFactory
 from pylibs.coders.decode import SchemaTemplateDecoder 
 from pylibs.coders.encode import SchemaTemplateEncoder
 from pylibs.constants.constants import FILE_MAP, MONGO_STRUCTURE
 from backend.config import BaseConfig
+# replacing BaseConfig
+from pylibs.config.configuration import (
+    ConfigLoader,
+    Configuration
+)
 
 from pylibs.logging.loginator import Loginator
 
@@ -77,10 +82,11 @@ class SchemaMigrationEngine():
     SUPPORTED_DYNAMIC_SCHEMAS = []
 
     def __init__(self,
-        mongo_host: str,
-        mongo_port: int,
-        mongo_username: str,
-        mongo_password: str
+        # mongo_host: str,
+        # mongo_port: int,
+        # mongo_username: str,
+        # mongo_password: str
+        config: Configuration = None
     ) -> None:
         """__init__ create a SchemaMigrationEngine object
 
@@ -99,10 +105,7 @@ class SchemaMigrationEngine():
             mongo_password (str): An administrative user with access to MongoDB
         """
         self.client = self.__class__.__initialize_mongo_connection(
-            mongo_host=mongo_host,
-            mongo_port=mongo_port,
-            mongo_username=mongo_username,
-            mongo_password=mongo_password)
+            config)
         self.server_info = self.client.server_info()
         self.server_version = self.server_info['version']
         #initialize parameters on self, will be updated
@@ -112,10 +115,7 @@ class SchemaMigrationEngine():
         
     @classmethod
     def __initialize_mongo_connection(cls,
-        mongo_host: str,
-        mongo_port: int,
-        mongo_username: str,
-        mongo_password: str
+        config: Configuration = None
     ) -> MongoClient:
         """__initialize_mongo_connection init a connection to MongoDB
 
@@ -133,11 +133,16 @@ class SchemaMigrationEngine():
         
             MongoClient: a MongoClient object connected to requested mongo instance
         """
-        config = BaseConfig(mongo_host=mongo_host,
-                            mongo_port=mongo_port,
-                            mongo_username=mongo_username,
-                            mongo_password=mongo_password)
-        return MongoClient(config.mongo_connect_string)
+        # config = BaseConfig(mongo_host=mongo_host,
+        #                     mongo_port=mongo_port,
+        #                     mongo_username=mongo_username,
+        #                     mongo_password=mongo_password)
+        # loader = ConfigLoader(from_file=True, config='settings/config.json')
+        # loader.add_attributes()
+        # config = Configuration(
+        #     **loader.database
+        # )
+        return MongoClient(host=config.mongo_connection_string())
 
 
     @classmethod
