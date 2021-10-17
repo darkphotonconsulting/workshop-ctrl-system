@@ -1,0 +1,7 @@
+[tool.pytest.ini_options]
+addopts = '-c pyproject.toml'
+testpaths = [
+    'tests',
+    'pylibs/tests',
+    'pylibs/database/tests'
+]
