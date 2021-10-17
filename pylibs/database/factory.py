@@ -28,7 +28,7 @@ from mongoengine import (
 )
 
 # development, testing
-from pylibs.database.default_schemas import SchemaFactory
+from pylibs.database.schemas import SchemaFactory
 schema_factory = SchemaFactory()
 system = schema_factory.get_default_schema_template(
     schema_type='static',
