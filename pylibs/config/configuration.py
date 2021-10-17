@@ -201,18 +201,15 @@ class ConfigLoader():
                 f"please set atleast one of `from_file` `from_string` or `from_object`"
             }
         if from_object and not (from_string and from_file):
-            print(f"getting config data from object")
             return config
 
         elif from_string and not (from_file and from_object):
-            print(f"getting config data from string")
             if isinstance(config, str):
                 try:
                     return json.loads(config)
                 except:
                     return {"error": "can not load string"}
         elif from_file and not (from_string and from_object):
-            print(f"getting config data from file")
             if os.path.exists(config):
                 with open(config, 'r') as file:
                     try:
@@ -485,7 +482,6 @@ class Configuration(object, metaclass=abc.ABCMeta):
             metrics_port (int, optional): MetricsService Port. Defaults to None.
         """
         self.__class__.logger = self.__class__.__reconfigure_logger()
-        print(f"kwargs value is {kwargs}")
         if mongo_username is None and mongo_password is None:  # no auth provided
             self.__class__.logger.warning(
                 "neither mongo_username or mongo_password were provided, the connection will not use authentication"
