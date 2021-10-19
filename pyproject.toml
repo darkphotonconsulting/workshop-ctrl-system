@@ -3,5 +3,6 @@ addopts = '-c pyproject.toml'
 testpaths = [
     'tests',
     'pylibs/tests',
-    'pylibs/database/tests'
+    'pylibs/database/tests',
+    'pylibs/arduino/tests'
 ]
