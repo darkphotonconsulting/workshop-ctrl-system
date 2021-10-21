@@ -10,6 +10,10 @@ from pylibs.arduino.programmer import (
     ArduinoProgrammer
 )
 
+
+programmer = ArduinoProgrammer()
+
+
 REQUIRED_KEYS = [
     'arduino_dir', 'arduino_libs', 'arduino_port', 'arduino_core_path',
     'board_tag', 'board_txt', 'bootloader_parent', 'user_lib_path'

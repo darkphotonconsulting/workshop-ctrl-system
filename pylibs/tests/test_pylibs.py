@@ -20,10 +20,12 @@ PYLIBS_MODULES = [
 
 
 def test_imports(capsys):
+    """test_imports Test imports under the pylibs module tree
+    """
     try:
         for module in PYLIBS_MODULES:
-            with capsys.disabled():
-                print(f"importing {module}")
+            #with capsys.disabled():
+            sys.stdout.write(f"\n importing {module} ")
             globals()[module] = __import__(module)
 
         assert all(
