@@ -8,59 +8,76 @@ from time import time
 from datetime import datetime
 from contextlib import contextmanager
 from pathlib import Path
-from pyudev import Context, Device, Devices
+from pyudev import Context, Device
 from glob import glob
 from copy import copy
-import tempfile
+#import tempfile
 from tempfile import (
     TemporaryDirectory,
     TemporaryFile
 )
 
+from pymata4.pymata4 import Pymata4
+
 from SCons.Script import (
-    Environment, 
+#    Environment, 
     DefaultEnvironment, 
-    DEFAULT_TARGETS,
-    AlwaysBuild, 
-    Default, 
-    Import, 
+#    DEFAULT_TARGETS,
+#    AlwaysBuild, 
+#    Default, 
+#    Import, 
     Variables, 
-    ARGUMENTS
+#    ARGUMENTS
 )  # pylint: disable=import-eror
 import re
 
 
-from jinja2 import Template
-from platformio import compat, fs
+#from jinja2 import Template
+from platformio import fs
 from platformio.proc import get_pythonexe_path
-from platformio.platform.base import PlatformBase
+#from platformio.platform.base import PlatformBase
 from platformio.builder.tools.pioproject import (
-    GetProjectConfig, 
-    GetProjectOption, 
-    GetProjectOptions, 
+    # GetProjectConfig, 
+    # GetProjectOption, 
+    # GetProjectOptions, 
     ProjectConfig, 
-    LoadProjectOptions
+    # LoadProjectOptions
 )
-from platformio.builder.tools.piomisc import InoToCPPConverter, ConvertInoToCpp
-from platformio.builder.tools.pioplatform import (
-    PioPlatform, 
-    BoardConfig, 
-    GetFrameworkScript, 
-    LoadPioPlatform, 
-    PrintConfiguration
-)
-from platformio.builder.tools.pioupload import (
-    FlushSerialBuffer,
-    TouchSerialPort,
-    WaitForNewSerialPort,
-    AutodetectUploadPort,
-    UploadToDisk,
-    CheckUploadSize,
-    PrintUploadInfo
-)
+#from platformio.builder.tools.piomisc import InoToCPPConverter, ConvertInoToCpp
+# from platformio.builder.tools.pioplatform import (
+#     PioPlatform, 
+#     BoardConfig, 
+#     GetFrameworkScript, 
+#     LoadPioPlatform, 
+#     PrintConfiguration
+# )
+# from platformio.builder.tools.pioupload import (
+#     FlushSerialBuffer,
+#     TouchSerialPort,
+#     WaitForNewSerialPort,
+#     AutodetectUploadPort,
+#     UploadToDisk,
+#     CheckUploadSize,
+#     PrintUploadInfo
+# )
 from platformio.project.helpers import (
     get_project_dir,
 )
+
+
+SKETCH_FILE = "FirmataExpress.cpp"
+SKETCH_DEPENDENCIES = [
+    'FirmataExpress'
+]
+SKETCH_LIBRARIES = [
+    'DHTStable', 
+    'FirmataExpress', 
+    'Ultrasonic', 
+    'Wire', 
+    'Servo', 
+    'Stepper', 
+]
+    
 
 @contextmanager
 def chdir(path: Path = None):
@@ -90,16 +107,27 @@ class ArduinoMakeFile(MakeFile):
 
     MASKED = ['error', 'ardmk_file']
     FIRMATA_DEPENDS = [
-        'gaitolini/SoftwareSerial@1.0', 
+        #'gaitolini/SoftwareSerial@1.0', 
         #'featherfly/SoftwareSerial@^1.0'
-        'Firmata@2.5.5',
+        #'Firmata@2.5.5',
         #'arduino-libraries/Servo@1.1.8'
+        'FirmataExpress',
     ]
-    USER_LIBS = "SoftwareSerial SoftwareSerial/include Firmata Firmata/utility Wire Servo"
+    #USER_LIBS = "SoftwareSerial SoftwareSerial/include Firmata Firmata/utility Wire Servo"
+    USER_LIBS = "DHTStable FirmataExpress Ultrasonic Wire Servo Stepper"
+    ARDUINO_LIBS = [
+        'DHTStable', 
+        'FirmataExpress', 
+        'Ultrasonic', 
+        'Wire', 
+        'Servo', 
+        'Stepper',
+    ]
 
     def __init__(self,
         board_tag: str = None,
         device_port: str = None,
+        arduino_dir: str = None,
         arduino_make_files: str = None,
         board_protocol: str = None,
         bootloader: str = None,
@@ -107,7 +135,7 @@ class ArduinoMakeFile(MakeFile):
         target_path: str = None,
         user_lib_path: str = None,
         arduino_libs: list = None,
-        user_libs: str = None,
+        user_libs: list = None,
 
     ) -> None:
         if target_path is not None:
@@ -115,7 +143,7 @@ class ArduinoMakeFile(MakeFile):
             device_port = "/dev/ttyacm0" if device_port is None else device_port
             bootloader = "stk500v2" if bootloader is None else bootloader
             variant = "mega" if variant is None else variant
-            self.arduino_dir = "/usr/share/arduino"
+            self.arduino_dir = "/usr/share/arduino" if arduino_dir is None else arduino_dir
             self.arduino_core_path =  os.path.join(self.arduino_dir, "hardware/arduino/cores/arduino")
             #target = standardfirmata         # the same as your ino file name
             self.board_tag    = board_tag           # can also be mega2560
@@ -125,9 +153,10 @@ class ArduinoMakeFile(MakeFile):
             self.ardmk_dir = self.arduino_dir if arduino_make_files is None else arduino_make_files
             self.ardmk_file = os.path.join(self.ardmk_dir, "Arduino.mk")
             self.user_lib_path = os.path.join(target_path, 'libraries') if user_lib_path is None else user_lib_path
-            #self.arduino_libs =  " ".join(self.__class__.FIRMATA_DEPENDS) if arduino_libs is None else arduino_libs
-            self.arduino_libs = self.__class__.USER_LIBS if arduino_libs is None else arduino_libs
+            # make ARDUINO_LIBS a list and use this for the ARDUINO_LIBS parameter 
+            self.arduino_libs = " ".join(self.__class__.ARDUINO_LIBS) if user_libs is None else " ".join(user_libs)
             #self.user_libs = self.__class__.USER_LIBS if user_libs is None else user_libs
+            
             self.avr_tools_path = os.path.join(self.arduino_dir,
                                             "hardware/tools/avr/bin")
             self.avr_dude = os.path.join(self.arduino_dir, "hardware/tools/avrdude")
@@ -236,14 +265,25 @@ class ArduinoProgrammer(object):
     ARDUINO_SKEL = os.path.join(ARDUINO_CORE, 'main.cpp')
     ARDUINO_HEADER = os.path.join(ARDUINO_CORE, 'Arduino.h')
     ARDUINO_LIBRARIES = os.path.join(ARDUINO_HOME, 'libraries')
-    FIRMATA_FILE = "StandardFirmata.ino"
+    # switching to firmata express
+    #FIRMATA_FILE = "StandardFirmata.cpp"
+    FIRMATA_FILE = "FirmataExpress.cpp"
     FIRMATA_DEPENDS = [
         #'featherfly/SoftwareSerial@^1.0'
-        'gaitolini/SoftwareSerial@1.0', 
-        'Firmata@2.5.5',
+        'FirmataExpress'
         #'arduino-libraries/Servo@1.1.8'
     ]
-    USER_LIBS = "SoftwareSerial SoftwareSerial/include Firmata Firmata/utility Wire Servo"
+    #USER_LIBS = "SoftwareSerial SoftwareSerial/include Firmata Firmata/utility Wire Servo"
+    #USER_LIBS = "DHTStable FirmataExpress Ultrasonic Wire Servo Stepper"
+    USER_LIBS = [
+       'DHTStable', 
+       'FirmataExpress', 
+       'Ultrasonic', 
+       'Wire', 
+       'Servo', 
+       'Stepper', 
+    ]
+    
 
 
     ARDUINO_SKETCH_EXTENSION = '.ino'
@@ -324,7 +364,14 @@ class ArduinoProgrammer(object):
         return confs.get(arduino_board, {})
 
 
-
+    @classmethod
+    def __arduino_runs_firmata(cls,
+    ) -> bool:
+        board = Pymata4()
+        if isinstance(board.get_protocol_version(), str):
+            return True
+        else:
+            return False
 
     @classmethod
     def __arduino_connected(cls,
@@ -595,8 +642,14 @@ class ArduinoProgrammer(object):
             
         if arduino_libraries is None:
             ino_path = os.path.dirname(os.path.abspath(__file__)) if ino_path is None else ino_path
-            ino_path =  os.path.join("/".join(ino_path.split('/')[0:-2]), "arduino") # modify the path so it is right
-            print(f"configured path is {ino_path}")
+            print("/".join(ino_path.split('/')[0:-2]))
+            ino_path =  os.path.join(
+                "/".join(ino_path.split('/')[0:-2]),
+                "pylibs", 
+                "arduino", 
+                "catalog"
+            ) # modify the path so it is right
+            print(f"configured path to INO is {ino_path}")
             ino_file = os.path.join(ino_path,  ino_file)
             print(f"using locally housed {ino_path}  {ino_file}")
             shutil.copy(
