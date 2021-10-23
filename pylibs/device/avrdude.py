@@ -43,9 +43,53 @@ def preprocess_config(
                 line        
             ): # lines with only '\n'
                 continue
+
+            # things to fix
+            if re.match(
+                r".+ (?P<comment>\/\* .+ \*\/)",
+                line     
+            ): # remove C style comments /* */
+                line = re.sub(r"\/\* .+ \*\/", "", line)
             # rebuild configuration
             conf = conf + line
     return conf
+
+def extract_part_memories(
+    part: str = None
+) -> str:
+    """extract_part_memories [summary]
+
+    [extended_summary]
+
+    Args:
+        part (str, optional): [description]. Defaults to None.
+
+    Returns:
+        str: [description]
+    """
+    rgx = re.compile(pattern=f"^\s{{4}}memory\s{{1}}\"(?P<type>\w+)\"\n(?P<memoryBlock>(?:\s+\w+\s+=\s+(?:\w|\d|\s|\"|,|)+[;,]\n)+^\s{{4,6}};)", flags=re.MULTILINE)
+    return [memory for memory in re.findall(
+        pattern=rgx, 
+        string=part, 
+        #flags=re.MULTILINE
+        )
+    ]
+
+def extract_memory_attributes(
+    memory: tuple = None
+) -> dict:
+    attributes = {}
+    memory_type = memory[0]
+    attributes[memory_type] = {}
+    for kv_line in memory[1].split("\n"):
+        if '=' in kv_line:
+            key, value = [i.strip().replace("\t", "").replace(";", "") for i in kv_line.split("=")]
+            attributes[memory_type][key] = value
+        else: continue
+
+    return attributes
+            
+    
 
 def extract_parent_parts(
     conf: str = None
@@ -60,7 +104,22 @@ def extract_parent_parts(
     Returns:
         list: list of defined part strings
     """
-    return [parent_part[0] for parent_part in re.findall(r"(?P<part>^part\n(\s{4,}.*\n)+)", conf, flags=re.MULTILINE)]
+    return [parent_child[0] for parent_child in re.findall(r"(?P<part>^part\n(\s{1,4}.*\n)+)", conf, flags=re.MULTILINE)]
+
+def extract_children_parts(
+    conf: str = None
+) -> list:
+    """extract_children_parts parse parts from AVRdude configuration
+
+
+
+    Args:
+        conf (str, optional): a clean AVRdude configuration. Defaults to None.
+
+    Returns:
+        list: list of defined part strings
+    """
+    return [child_part[0] for child_part in re.findall(r"(?P<part>^part parent .+\n(\s{1,4}.*\n)+)", conf, flags=re.MULTILINE)]
 
 def extract_part_attributes(
     part: str = None
