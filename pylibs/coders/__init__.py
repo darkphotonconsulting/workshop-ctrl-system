@@ -4,6 +4,6 @@
 """
 
 __all__ = [
-    'decode.SchemaTemplateDecoder',
-    'encode.SchemaTemplateEncoder'
+    'decode',
+    'encode'
 ]

@@ -4,6 +4,5 @@ programmer - class for building arduino code and uploading to arduino, depends o
 """
 
 __all__ = [
-    'programmer.ArduinoProgrammer', 
-    'programmer.ArduinoMakeFile'
+    'programmer',
 ]

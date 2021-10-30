@@ -2,6 +2,5 @@
 """
 
 __all__ = [
-    'configuration.ConfigLoader',
-    'configuration.Configuration'
+    'configuration',
 ]
