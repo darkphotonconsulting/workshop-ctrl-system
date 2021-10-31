@@ -2,8 +2,17 @@ import os
 import sys
 import pytest
 current_dir = os.path.dirname(os.path.abspath(__file__))
-libs = "/".join(current_dir.split('/')[0:-1])
+libs = "/".join(current_dir.split('/')[0:-2])
 sys.path.append(libs)
+#print(libs)
+
+from pylibs.utilx.toolkit import ecosystem
+from pylibs.utilx.toolkit import (
+    EcoSystem,
+    Pkg,
+    Mod,
+    Klass
+)
 
 PYLIBS_MODULES = [
     'pylibs.arduino.programmer',
@@ -18,7 +27,20 @@ PYLIBS_MODULES = [
     'pylibs.relay',
 ]
 
+@pytest.fixture
+def eco():
+    return ecosystem()
 
+def test_ecosystem_struct(eco):
+    assert isinstance(eco, EcoSystem)
+    assert isinstance(eco.modules, list)
+    assert isinstance(eco.packages, list)
+    assert isinstance(eco.classes, list)
+    
+    
+
+
+    
 def test_imports(capsys):
     """test_imports Test imports under the pylibs module tree
     """
