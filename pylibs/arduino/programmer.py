@@ -1,3 +1,5 @@
+""" Arduino Programmer
+"""
 import os
 import sys
 import subprocess
@@ -79,6 +81,11 @@ SKETCH_LIBRARIES = [
 ]
     
 
+__all__ = [
+    'Makefile',
+    'ArduinoMakeFile',
+    'ArduinoProgrammer'
+]
 @contextmanager
 def chdir(path: Path = None):
     origin = Path().absolute()

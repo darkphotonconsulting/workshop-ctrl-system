@@ -1,3 +1,5 @@
+"""Schema Migration Engine
+"""
 import os
 import sys
 import json
@@ -20,6 +22,10 @@ from pylibs.coders.decode import SchemaTemplateDecoder
 from pylibs.coders.encode import SchemaTemplateEncoder
 from pylibs.config.configuration import Configuration
 
+__all__ = [
+    'SchemaMigrationEngine',
+    'DataSeedEngine'
+]
 NoneType = type(None)
 
 class SchemaMigrationEngine(Mongo, metaclass=object):

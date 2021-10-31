@@ -10,11 +10,9 @@ __Supported Backends__:
 
 
 __all__ = [
-    'common.Mongo',
-    'engines.SchemaMigrationEngine',
-    'engines.DataSeedEngine',
-    'schemas.SchemaFactory',
-    'schemas.StaticSchemas',
-    'schemas.DynamicSchemas',
+    'common',
+    'engines',
+    'schemas',
+    'orm_schemas',
     'factory',
 ]

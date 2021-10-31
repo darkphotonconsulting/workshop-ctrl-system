@@ -1,7 +1,36 @@
+""" JSON Encoders
+"""
+import os
+import sys
 import json
 from json import JSONEncoder, JSONDecoder
 from bson.objectid import ObjectId
 from uuid import UUID
+from pyudev import Device
+from pymata4.pymata4 import Pymata4
+current_dir = os.path.dirname(os.path.abspath(__file__))
+libs = "/".join(current_dir.split('/')[0:-2])
+sys.path.append(libs)
+from pylibs.config.configuration import Configuration
+
+__all__ = [
+    'ArduinoInfoEncoder', 
+    'MigrationEncoder', 
+    'SchemaTemplateEncoder'
+]
+class ArduinoInfoEncoder(JSONEncoder):
+    def default(self,
+        object
+    ):
+        """default overrides JSONEncoder default method to support ArduinoInfo objects
+        """
+        if isinstance(object, Configuration):
+            return object.all()
+        if isinstance(object, Device):
+            return object.device_path
+        if isinstance(object, Pymata4):
+            return ""
+        return JSONEncoder.default(self, object)
 
 
 class MigrationEncoder(JSONEncoder):

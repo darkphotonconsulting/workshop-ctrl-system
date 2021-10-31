@@ -1,9 +1,40 @@
-""" constants
-
+""" Constants
 This file contains constants whose values are frequently referenced within the headunit software ecosystem
 """
 import sys
 import os
+
+__all__ = [
+    'STOP_CODES',
+    'ARDUINO_RESP_OK',
+    'ARDUINO_RESP_FAILED',
+    'ARDUINO_RESP_UNKNOWN',
+    'ARDUINO_RESP_NODEV',
+    'ARDUINO_RESP_INSYNC',
+    'ARDUINO_RESP_NOSYNC',
+    'ARDUINO_RESP_ADC_CHAN_ERROR',
+    'ARDUINO_RESP_ADC_MEAS_OK',
+    'ARDUINO_RESP_PWM_CHAN_ERROR',
+    'ARDUINO_RESP_PWM_ADJUST_OK',
+    'ARDUINO_SYNC_CRC_EOP',
+    'ARDUINO_CMD_GET_SYNC',
+    'ARDUINO_CMD_SET_PARAM',
+    'ARDUINO_CMD_GET_PARAM',
+    'ARDUINO_CMD_SET_DEV',
+    'ARDUINO_CMD_SET_DEV_EXT',
+    'ARDUINO_CMD_READ_SIGN',
+    'ARDUINO_HOME',
+    'AVRDUDE_BIN',
+    'ARDUINO_BOARDS',
+    'AVRDUDE_CONF',
+    'AVRDUDE_PART_KEYS',
+    'AVRDUDE_MEMORY_KEYS',
+    'MONGO_STRUCTURE',
+    'SUPPORTED_DATABASE_NAMES',
+    'COLLECTION_ALIAS_MAP',
+    'SUPPORTED_COLLECTIONS_MAP',
+    'FILE_MAP'
+]
 
 # --------- GENERAL ---------
 
@@ -16,8 +47,33 @@ STOP_CODES: dict = {
 }
 
 # --------- ARDUINO ---------
-ARDUINO_HOME: str = "/usr/share/arduino"
 
+ARDUINO_RESP_OK: int = 0x10
+ARDUINO_RESP_FAILED: int = 0x11
+ARDUINO_RESP_UNKNOWN: int = 0x12
+ARDUINO_RESP_NODEV: int = 0x13
+ARDUINO_RESP_INSYNC: int = 0x14
+ARDUINO_RESP_NOSYNC: int = 0x15
+ARDUINO_RESP_ADC_CHAN_ERROR: int = 0x16
+ARDUINO_RESP_ADC_MEAS_OK: int = 0x17
+ARDUINO_RESP_PWM_CHAN_ERROR: int = 0x18
+ARDUINO_RESP_PWM_ADJUST_OK: int = 0x19
+ARDUINO_SYNC_CRC_EOP: int = 0x20
+ARDUINO_CMD_GET_SYNC: int = 0x30
+ARDUINO_CMD_SET_PARAM: int = 0x40
+ARDUINO_CMD_GET_PARAM: int = 0x41
+ARDUINO_CMD_SET_DEV: int = 0x42
+ARDUINO_CMD_SET_DEV_EXT: int = 0x43
+ARDUINO_CMD_READ_SIGN: int = 0x75
+
+ARDUINO_HOME: str = "/usr/share/arduino"
+AVRDUDE_BIN: str = os.path.join(ARDUINO_HOME, 
+    "hardware", 
+    "tools", 
+    "avr", 
+    "bin", 
+    "avrdude"
+)
 ARDUINO_BOARDS: str = os.path.join(ARDUINO_HOME, 
     "hardware", 
     "arduino", 

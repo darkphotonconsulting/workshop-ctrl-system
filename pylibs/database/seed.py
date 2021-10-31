@@ -1,3 +1,5 @@
+""" Not used
+"""
 import os
 import sys
 import json
@@ -18,9 +20,9 @@ from pymongo import (
     MongoClient, )
 from pymongo.database import Database
 from pymongo.collection import Collection
-from pylibs.database.default_schemas import StaticSchemas, SchemaFactory
+from pylibs.database.schemas import StaticSchemas, SchemaFactory
 from pylibs.constants.constants import FILE_MAP, MONGO_STRUCTURE
-from backend.config import BaseConfig
+#from backend.config import BaseConfig
 # replace base config 
 
 from pylibs.config.configuration import (

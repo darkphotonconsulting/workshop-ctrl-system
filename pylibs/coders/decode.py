@@ -1,8 +1,11 @@
+""" JSON Decoders
+"""
 import json
 from json import JSONEncoder, JSONDecoder
 from bson.objectid import ObjectId
 from uuid import UUID
 
+__all__ = ['SchemaTemplateDecoder']
 
 class SchemaTemplateDecoder(json.JSONDecoder):
     """SchemaTemplateDecoder - Deserialize a Schema Templates from JSON string to a python object

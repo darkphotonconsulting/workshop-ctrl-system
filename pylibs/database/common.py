@@ -1,3 +1,5 @@
+"""Common Database classes and methods
+"""
 from abc import ABCMeta
 import os
 import sys
@@ -33,6 +35,8 @@ from pylibs.constants.constants import (
     MONGO_STRUCTURE
 )
 
+MODULE = True
+__all__ = ['Mongo']
 class Mongo(object, metaclass=ABCMeta):
     """Mongo Base Mongo Database class
 

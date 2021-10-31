@@ -1,14 +1,11 @@
-""" factory
-
-Make classes that represent user defined schema templates
-
+""" Class factory
 """
 import os
 import sys
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 libs = "/".join(current_dir.split('/')[0:-2])
-print(libs)
+# print(libs)
 sys.path.append(libs)
 
 from mongoengine import (
@@ -39,6 +36,12 @@ gpios = schema_factory.get_default_schema_template(
     schema_template_name='gpios'
 )
 ####
+__all__ = [
+    'class_factory',
+    'field_from_template_value',
+    'fields_from_schema_template',
+    'classes_from_schema_template'
+]
 
 def class_factory(
     class_name: str = None,
