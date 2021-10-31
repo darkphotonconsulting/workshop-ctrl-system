@@ -1,3 +1,5 @@
+""" Program Errors
+"""
 class ConfigurationException(Exception):
     pass
 
