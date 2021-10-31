@@ -1,3 +1,5 @@
+""" Generic Relay Info
+"""
 import os, sys
 import json
 #sys.path.append(base_dir)
