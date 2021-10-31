@@ -1,3 +1,5 @@
+""" Raspberry Pi Info
+"""
 from gpiozero import *
 import time
 import json
