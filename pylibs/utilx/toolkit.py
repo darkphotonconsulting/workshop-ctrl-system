@@ -63,6 +63,10 @@ class PkgReport:
     def doc_coverage(self):
         total = self.total_packages
         return len(self.has_docs)/total*100
+
+    def all_coverage(self):
+        total = self.total_packages
+        return len(self.has_all)/total*100
         
 
 @dataclass
@@ -81,17 +85,27 @@ class ModReport:
         total = self.total_modules
         return len(self.has_docs)/total*100
 
+    def all_coverage(self):
+        total = self.total_modules
+        return len(self.has_all)/total*100
+
 @dataclass
 class KlassReport:
     total_classes: int
     total_loc: int
     missing_docs: list
     has_docs: list
+    missing_all: list
+    has_all: list
 
 
     def doc_coverage(self):
         total = self.total_classes
         return len(self.has_docs)/total*100
+
+    def all_coverage(self):
+        total = self.total_classes
+        return len(self.has_all)/total*100
 
 @dataclass
 class EcoSystemReport:
@@ -483,10 +497,10 @@ def report(
                     pkg.name for pkg in ecosys.packages if inspect.getdoc(pkg.ref) is not None
                 ],
                 missing_all=[
-                    pkg.name for pkg in ecosys.packages if '__all__' not in pkg.ref
+                    pkg.name for pkg in ecosys.packages if '__all__' not in pkg.ref.__dict__
                 ],
                 has_all=[
-                    pkg.name for pkg in ecosys.packages if '_all__' in pkg.ref
+                    pkg.name for pkg in ecosys.packages if '__all__' in pkg.ref.__dict__
                 ]
             ),
             modules = ModReport(
@@ -501,10 +515,10 @@ def report(
                     mod.name for mod in ecosys.modules if inspect.getdoc(mod.ref) is not None
                 ],
                 missing_all=[
-                    mod.name for mod in ecosys.modules if '__all__' not in mod.ref
+                    mod.name for mod in ecosys.modules if '__all__' not in mod.ref.__dict__
                 ],
                 has_all=[
-                    mod.name for mod in ecosys.modules if '_all__' in mod.ref
+                    mod.name for mod in ecosys.modules if '__all__' in mod.ref.__dict__
                 ]
             ), 
             classes = KlassReport(
@@ -515,6 +529,12 @@ def report(
                 ],
                 has_docs=[
                     klass.name for klass in ecosys.classes if inspect.getdoc(klass.ref) is not None
+                ],
+                missing_all=[
+                    klass.name for klass in ecosys.classes if '__all__' not in klass.ref.__dict__
+                ],
+                has_all=[
+                    klass.name for klass in ecosys.classes if '__all__' in klass.ref.__dict__
                 ]
                 
             )
