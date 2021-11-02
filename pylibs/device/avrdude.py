@@ -29,9 +29,6 @@ from pylibs.constants.constants import (
     AVRDUDE_PART_KEYS,
     AVRDUDE_CONF,
     AVRDUDE_BIN,
-    # ARDUINO_HOME,
-    # ARDUINO_SYNC_CRC_EOP,
-    # ARDUINO_CMD_READ_SIGN
 )
 
 def avrconf(
