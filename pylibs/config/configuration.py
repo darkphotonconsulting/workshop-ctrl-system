@@ -617,6 +617,21 @@ class Configuration(object, metaclass=abc.ABCMeta):
                 cls.__add_attribute(obj=obj, attrib=k, value=v)
         return obj
 
+    @classmethod
+    def __clean_dict(cls,
+        attribs: dict = None,
+        data: dict = None
+    )-> dict:
+        data = dict() if data is None else data
+        attribs = dict() if attribs is None else attribs
+        for k, v in attribs.items():
+            if type(v).__name__ == 'function':
+                continue
+            if isinstance(v, dict):
+                data[k] = v
+                data = cls.__clean_dict(attribs=v, data=data)
+            data[k] = v
+        return data
         
     def __init__(self, 
         **kwargs):
@@ -627,7 +642,12 @@ class Configuration(object, metaclass=abc.ABCMeta):
         self.__class__.__add_attributes(obj=self, attribs=self.config)
         self.__class__.__add_getters(obj=self, attribs=self.config)
         self.__class__.__add_setters(obj=self, attribs=self.config)
+        self.__dict__ = self.__class__.__clean_dict(attribs=self.__dict__)
         #print('flattened config: ',json.dumps(kwargs, indent=2))
+
+    # def __dict__(self,
+    # ) -> dict:
+    #     return self.__class__.__clean_dict(attribs=self.__dict__)
 
     def print_config(self,
     ) -> None:
