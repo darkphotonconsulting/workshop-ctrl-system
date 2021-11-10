@@ -23,6 +23,7 @@ from psutil import (
 )
 
 from flask import Flask
+from celery import Celery
 from flask import flash, jsonify
 from flask import request, redirect
 from flask_graphql import GraphQLView
@@ -31,6 +32,8 @@ from .config import HEADUNIT_CONFIG
 from .metrics import create_app
 from .metrics.model import db, graphql 
 from .metrics.model import System, Relay, Pin
+from .metrics.middleware import middleware
+
 current_dir = dirname(abspath(__file__))
 libs = "/".join(current_dir.split('/')[0:-4])
 path.append(libs)
@@ -42,6 +45,9 @@ from pylibs.database.orm_schemas import System, Relay, Pin
 
 
 app = create_app()
+celery = middleware(
+    app=app
+)
 app.config['MONGODB_SETTINGS'] = {
     #'db': 'static',
     'host': HEADUNIT_CONFIG.mongo_connection_string()
@@ -99,6 +105,10 @@ def api_v1_generic_relay():
         print('complete with result set')
     finally:
         return jsonify(results)
+
+@celery.task()
+def test_celery(message):
+    return message
 
 # @app.route('/api/v1/metrics/')
 
