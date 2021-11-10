@@ -1,0 +1,16 @@
+{
+  "manufacturer": "str",
+  "system": "str",
+  "model": "str",
+  "revision": "str",
+  "soc": "str",
+  "pcb_revision": "str",
+  "memory": "int",
+  "storage": "str",
+  "ethernet_speed": "int",
+  "has_wifi": "bool",
+  "has_bluetooth": "bool",
+  "usb_ports": "int",
+  "usb3_ports": "int",
+  "board_headers": "list"
+}
