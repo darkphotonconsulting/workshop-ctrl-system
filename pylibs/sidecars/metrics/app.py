@@ -23,7 +23,9 @@ from psutil import (
 )
 
 from flask import Flask
+#import celery
 from celery import Celery
+
 from flask import flash, jsonify
 from flask import request, redirect
 from flask_graphql import GraphQLView
