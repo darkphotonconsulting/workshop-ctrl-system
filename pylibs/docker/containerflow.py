@@ -36,6 +36,11 @@ from typing import (
     Iterable
 )
 
+from argparse import (
+    ArgumentParser, 
+    Namespace
+)
+
 import docker
 from docker.models.images import Image
 from docker.models.containers import Container
@@ -94,7 +99,6 @@ def pull(
             repository=image_name.split(':')[0],
             tag=image_name.split(':')[-1]
         )
-
 
 def logs(
     container: Container = None,
@@ -180,13 +184,9 @@ def buildlogs(
     build_lines = []
     while True:
         try:
-            line = next(generator)#.decode('utf-8').strip()
-            #print(type(line))
-            #print(line.keys())
+            line = next(generator)
             if 'stream' in line:
                 txt = line['stream']
-            #print()
-            #txt = line['stream']
                 if txt == "\n": continue
             
                 build_lines.append(txt)
