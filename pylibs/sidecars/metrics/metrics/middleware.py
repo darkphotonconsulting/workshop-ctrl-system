@@ -42,7 +42,7 @@ from flask import Flask
 
 current_dir = dirname(abspath(__file__))
 libs = "/".join(current_dir.split('/')[0:-2])
-print(libs)
+#print(libs)
 path.append(libs)
 
 from pylibs.mq.rabbit import (
@@ -98,12 +98,13 @@ def middleware(
 ) -> Celery:
     mq_host = "127.0.0.1" if mq_host is None else mq_host 
     mq_port = 5726 if mq_port is None else mq_port
-    print(f"import name: {app.import_name}")
+    # print(f"import name: {app.import_name}")
     celery = Celery(
        app.import_name,
        backend='rpc://',
        broker=broker_connection_string()
     )
+    #celery.conf.task_default_queue = "metrics.system"
     celery.conf.update(app.config)
 
     class ContextTask(celery.Task):

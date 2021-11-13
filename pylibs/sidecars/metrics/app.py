@@ -25,9 +25,10 @@ from psutil import (
 
 from flask import Flask
 #import celery
-from celery import Celery
+from celery import Celery, Task
 from celery.schedules import crontab
-from kombu import Exchange, Queue
+
+from kombu import Exchange, Queue, binding
 from flask import flash, jsonify
 from flask import request, redirect
 from flask_graphql import GraphQLView
@@ -48,178 +49,290 @@ from pylibs.metrics.system import SystemMetrics
 
 
 
-
+#t = Task()
 app = create_app()
 celery = middleware(
     app=app
 )
 
-
-# def route_tasks(name, args, kwargs, options, task=None, **kw):
-#     ret = dict()
-#     if name=="pylibs.sidecars.metrics.app.publish_vmem":
-#         ret = {
-#             'exchange': 'metrics',
-#             'exchange_type': 'topic',
-#             'routing_key' : 'metrics.vmem'
-#         }
-#     else:
-#         ret = {
-#             'exchange': 'metrics',
-#             'exchange_type': 'topic',
-#             'routing_key' : 'metrics.nocategory' 
-#         }
-#     return ret
-        
-# celery.conf.task_routes = (route_tasks,)
-
-@celery.task
-def test_celery(message):
-    return message
-
-
-@celery.task(queue='metrics')
-def publish_vmem():
-    metrics = SystemMetrics(interval=30)
-    mem = metrics.vmem()
-    return dumps(mem)
-
-@celery.task(queue='metrics')
-def publish_swap():
-    metrics = SystemMetrics(interval=30)
-    swap = metrics.swap()
-    return dumps(swap)
-
-@celery.task(queue='metrics')
-def publish_cputime():
-    metrics = SystemMetrics(interval=30)
-    cputime = metrics.cputime()
-    return dumps(cputime)
-
-@celery.task(queue='metrics')
-def publish_cpustats():
-    metrics = SystemMetrics(interval=30)
-    cpustats = metrics.cpustats()
-    return dumps(cpustats)
-
-@celery.task(queue='metrics')
-def publish_temps():
-    metrics = SystemMetrics(interval=30)
-    temps = metrics.temperatures()
-    return dumps(temps)
-
-@celery.task(queue='metrics')
-def publish_diskusage():
-    metrics = SystemMetrics(interval=30)
-    usage = metrics.diskusage()
-    return dumps(usage)
-
-@celery.task(queue='metrics')
-def publish_netio():
-    metrics = SystemMetrics(interval=30)
-    netio = metrics.netio()
-    return dumps(netio)
-
-## setup queues
-metrics_exchange = Exchange('metrics_exchange', type='direct')
+celery.conf.task_create_missing_queues = False
+metrics_exchange = Exchange('metrics', type='direct')
+default_exchange = Exchange('default', type='direct')
 celery.conf.task_queues = (
-    Queue('metrics', metrics_exchange, routing_key='metrics.*'),
+    Queue(
+        name='default', 
+        exchange=default_exchange, 
+        bindings=[
+            binding(
+                exchange=default_exchange, 
+                routing_key='default'
+            )
+        ], 
+        routing_key='default'
+    ),
+    Queue(
+        name='metrics.system', 
+        exchange=metrics_exchange, 
+        bindings=[
+            binding(
+                exchange=metrics_exchange, 
+                routing_key='metrics.system'
+            )
+        ], 
+        routing_key='metrics.system'
+    ),
+    Queue(
+        name='metrics.system.vmem', 
+        exchange=metrics_exchange,
+        bindings=[
+            binding(
+                exchange=metrics_exchange, 
+                routing_key='metrics.system.vmem'
+            )
+        ], 
+        routing_key='metrics.system.vmem'
+    ),
+    Queue(
+        name='metrics.system.swap', 
+        exchange=metrics_exchange,
+        bindings=[
+            binding(
+                exchange=metrics_exchange, 
+                routing_key='metrics.system.swap'
+            )
+        ], 
+        routing_key='metrics.system.swap'
+    ),
+    Queue(
+        name='metrics.system.cputime', 
+        exchange=metrics_exchange,
+        bindings=[
+            binding(
+                exchange=metrics_exchange, 
+                routing_key='metrics.system.cputime'
+            )
+        ], 
+        routing_key='metrics.system.cputime'
+    ),
+    Queue(
+        name='metrics.system.cpustats', 
+        exchange=metrics_exchange,
+        bindings=[
+            binding(
+                exchange=metrics_exchange, 
+                routing_key='metrics.system.cpustats'
+            )
+        ], 
+        routing_key='metrics.system.cpustats'
+    ),
+    Queue(
+        name='metrics.system.temps', 
+        exchange=metrics_exchange,bindings=[
+            binding(
+                exchange=metrics_exchange, 
+                routing_key='metrics.system.temps'
+            )
+        ], 
+        routing_key='metrics.system.temps'),
+    Queue(
+        name='metrics.system.diskusage', 
+        exchange=metrics_exchange,bindings=[
+            binding(
+                exchange=metrics_exchange, 
+                routing_key='metrics.system.diskusage'
+            )
+        ], 
+        routing_key='metrics.system.diskusage'),
+    Queue(
+        name='metrics.system.netio', 
+        exchange=metrics_exchange,bindings=[
+            binding(
+                exchange=metrics_exchange, 
+                routing_key='metrics.system.netio'
+            )
+        ], 
+        routing_key='metrics.system.netio'),
 )
-celery.conf.task_default_queue = 'metrics'
-celery.conf.task_default_exchange = 'metrics_exchange'
-celery.conf.task_default_routing_key = 'metrics.general'
-celery.conf.task_routes = {
-    'pylibs.sidecars.metrics.app.celery.tasks.publish_vmem': {
-        'queue': 'metrics',
-        'routing_key': 'metrics.vmem',
-    },
-    'pylibs.sidecars.metrics.app.celery.tasks.publish_swap': {
-        'queue': 'metrics',
-        'routing_key': 'metrics.swap',
-    },
-    'pylibs.sidecars.metrics.app.celery.tasks.publish_cputime': {
-        'queue': 'metrics',
-        'routing_key': 'metrics.cputime',
-    },
-    'pylibs.sidecars.metrics.app.celery.tasks.publish_cpustats': {
-        'queue': 'metrics',
-        'routing_key': 'metrics.cpustats',
-    },
-    'pylibs.sidecars.metrics.app.celery.tasks.publish_temps': {
-        'queue': 'metrics',
-        'routing_key': 'metrics.temperature',
-    },
-    'pylibs.sidecars.metrics.app.celery.tasks.publish_diskusage': {
-        'queue': 'metrics',
-        'routing_key': 'metrics.diskusage',
-    },
-    'pylibs.sidecars.metrics.app.celery.tasks.publish_netio': {
-        'queue': 'metrics',
-        'routing_key': 'metrics.netio',
-    },
-}
 
-# celery beat
+# AMQP defaults
+celery.conf.default_queue = 'metrics.system'
+celery.conf.task_default_queue = 'metrics.system'
+celery.conf.task_default_exchange = 'metrics'
+celery.conf.task_default_exchange_type = 'direct'
+celery.conf.task_default_routing_key = 'metrics.system'
+celery.conf.update(task_routes = {
+    'pylibs.sidecars.metrics.app.publish_vmem': 
+        {
+            'queue': 'metrics.system.vmem',
+            'routing_key': 'metrics.system.vmem'
+        }
+})
 
-celery.conf.beat_schedule = {
+celery.conf.update(beat_schedule = {
     'publish-vmem-60s': {
         'task': 'pylibs.sidecars.metrics.app.publish_vmem',
         'schedule': 60.0,
         'options': {
-            'queue': 'metrics',
-            'routing_key': 'metrics.vmem'            
+            'queue': 'metrics.system.vmem',
+            'routing_key': 'metrics.system.vmem',
+            # 'exchange': 'metrics',            
+            'exchange_type': 'direct',
+            'priority': 1,
         },
     },
     'publish-swap-60s': {
         'task': 'pylibs.sidecars.metrics.app.publish_swap',
         'schedule': 60.0,
         'options': {
-            'queue': 'metrics',
-            'routing_key': 'metrics.swap'            
+            'queue': 'metrics.system.swap',
+            'routing_key': 'metrics.system.swap',
+            # 'exchange': 'metrics',            
+            'exchange_type': 'direct',
+            'priority': 1,
         },
     },
     'publish-cputime-60s': {
         'task': 'pylibs.sidecars.metrics.app.publish_cputime',
         'schedule': 60.0,
         'options': {
-            'queue': 'metrics',
-            'routing_key': 'metrics.cputime'            
+            'queue': 'metrics.system.cputime',
+            'routing_key': 'metrics.system.cputime',
+            # 'exchange': 'metrics',            
+            'exchange_type': 'direct',
+            'priority': 1,
         },
     },
     'publish-cpustats-60s': {
         'task': 'pylibs.sidecars.metrics.app.publish_cpustats',
         'schedule': 60.0,
         'options': {
-            'queue': 'metrics',
-            'routing_key': 'metrics.cpustats'            
+            'queue': 'metrics.system.cpustats',
+            'routing_key': 'metrics.system.cpustats',
+            #'exchange': 'metrics',            
+            'exchange_type': 'direct',
+            'priority': 1,
         },
     },
     'publish-temperature-60s': {
         'task': 'pylibs.sidecars.metrics.app.publish_temps',
         'schedule': 60.0,
         'options': {
-            'queue': 'metrics',
-            'routing_key': 'metrics.temperature'            
+            'queue': 'metrics.system.temps',
+            'routing_key': 'metrics.system.temps',
+            # 'exchange': 'metrics',            
+            'exchange_type': 'direct',
+            'priority': 1,
         },
     },
     'publish-disk-usage-60s': {
         'task': 'pylibs.sidecars.metrics.app.publish_diskusage',
         'schedule': 60.0,
         'options': {
-            'queue': 'metrics',
-            'routing_key': 'metrics.diskusage'            
+            'queue': 'metrics.system.diskusage',
+            'routing_key': 'metrics.system.diskusage',
+            # 'exchange': 'metrics',            
+            'exchange_type': 'direct',
+            'priority': 1,
+
         },
     },
     'publish-netio-60s': {
         'task': 'pylibs.sidecars.metrics.app.publish_netio',
         'schedule': 60.0,
         'options': {
-            'queue': 'metrics',
-            'routing_key': 'metrics.netio'            
+            'queue': 'metrics.system.netio',
+            'routing_key': 'metrics.system.netio',
+            # 'exchange': 'metrics',         
+            'exchange_type': 'direct',
+            'priority': 1,
         },
     },
-}
+})
 celery.conf.timezone = 'UTC'
+
+# define Tasks
+
+@celery.task()
+def test_celery(message):
+    return message
+
+@celery.task(
+    bind=True, 
+    queue='metrics.system.vmem', 
+    reply_to='metrics.system.vmem',
+    name='pylibs.sidecars.metrics.app.publish_vmem' 
+)
+def publish_vmem(self):
+    metrics = SystemMetrics(interval=30)
+    mem = metrics.vmem()
+    return dumps(mem)
+
+@celery.task(
+    bind=True, 
+    queue='metrics.system.swap', 
+    name='pylibs.sidecars.metrics.app.publish_swap'
+)
+def publish_swap(self):
+    metrics = SystemMetrics(interval=30)
+    swap = metrics.swap()
+    return dumps(swap)
+
+@celery.task(
+    bind=True, 
+    queue='metrics.system.cputime', 
+    name='pylibs.sidecars.metrics.app.publish_cputime'
+)
+def publish_cputime(self):
+    metrics = SystemMetrics(interval=30)
+    cputime = metrics.cputime()
+    return dumps(cputime)
+
+@celery.task(
+    bind=True, 
+    queue='metrics.system.cpustats', 
+    name='pylibs.sidecars.metrics.app.publish_cpustats'
+)
+def publish_cpustats(self):
+    metrics = SystemMetrics(interval=30)
+    cpustats = metrics.cpustats()
+    return dumps(cpustats)
+
+@celery.task(
+    bind=True, 
+    # exchange='metrics',
+    queue='metrics.system.temps', 
+    name='pylibs.sidecars.metrics.app.publish_temps'
+)
+def publish_temps(self):
+    metrics = SystemMetrics(interval=30)
+    temps = metrics.temperatures()
+    return dumps(temps)
+
+
+#Task.apply_async()
+
+@celery.task(
+    bind=True, 
+    queue='metrics.system.diskusage', 
+    name='pylibs.sidecars.metrics.app.publish_diskusage'
+)
+def publish_diskusage(self):
+    metrics = SystemMetrics(interval=30)
+    usage = metrics.diskusage()
+    return dumps(usage)
+
+@celery.task(
+    bind=True, 
+    queue='metrics.system.netio', 
+    name='pylibs.sidecars.metrics.app.publish_netio'
+)
+def publish_netio(self):
+    metrics = SystemMetrics(interval=30)
+    netio = metrics.netio()
+    return dumps(netio)
+
+# setup Exchanges & Queues
+
 # celery.conf.task_default_queue = 'metrics'
 # celery.conf.task_queues = (
 #     Queue('metrics', routing_key='metric.*')
