@@ -24,6 +24,7 @@ from psutil import (
 )
 
 from flask import Flask
+from flask_mongoengine import MongoEngine, Document
 #import celery
 from celery import Celery, Task
 from celery.schedules import crontab
@@ -44,19 +45,132 @@ libs = "/".join(current_dir.split('/')[0:-4])
 path.append(libs)
 # set default configuration file 
 from pylibs.database.orm_schemas import System, Relay, Pin
+from pylibs.database.orm_schemas import (
+    SystemMetricVirtualMemory,
+    SystemMetricCPUStats,
+    SystemMetricSwap,
+    SystemMetricCPUTime,
+    SystemMetricDiskUsageStats,
+    SystemMetricNetIOStats
+)
 from pylibs.metrics.system import SystemMetrics
+from pylibs.mq.rabbit import (
+    Rabbit, 
+    RabbitAdmin
+)
 #from pylibs.logging.loginator import Loginator
 
 
 
+
 #t = Task()
+rabbit = Rabbit(
+    broker_host='127.0.0.1',
+    broker_port=5672,
+)
 app = create_app()
 celery = middleware(
     app=app
 )
 
+
+    
 celery.conf.task_create_missing_queues = False
+celery.conf.update(task_routes = {
+    'pylibs.sidecars.metrics.app.publish_vmem': 
+        {
+            'queue': 'metrics.system.vmem',
+            'routing_key': 'metrics.system.vmem'
+        }
+})
+
+celery.conf.update(beat_schedule = {
+    'publish-vmem-60s': {
+        'task': 'pylibs.sidecars.metrics.app.publish_vmem',
+        'schedule': 60.0*5,
+        'options': {
+            # 'queue': 'metrics.system.vmem',
+            'routing_key': 'metrics.system.vmem',
+            'exchange': 'metrics',            
+            'exchange_type': 'direct',
+            'priority': 1,
+        },
+    },
+    'publish-swap-60s': {
+        'task': 'pylibs.sidecars.metrics.app.publish_swap',
+        'schedule': 60.0*5,
+        'options': {
+            # 'queue': 'metrics.system.swap',
+            'routing_key': 'metrics.system.swap',
+            'exchange': 'metrics',            
+            'exchange_type': 'direct',
+            'priority': 1,
+        },
+    },
+    'publish-cputime-60s': {
+        'task': 'pylibs.sidecars.metrics.app.publish_cputime',
+        'schedule': 60.0*5,
+        'options': {
+            # 'queue': 'metrics.system.cputime',
+            'routing_key': 'metrics.system.cputime',
+            'exchange': 'metrics',            
+            'exchange_type': 'direct',
+            'priority': 1,
+        },
+    },
+    'publish-cpustats-60s': {
+        'task': 'pylibs.sidecars.metrics.app.publish_cpustats',
+        'schedule': 60.0*5,
+        'options': {
+            # 'queue': 'metrics.system.cpustats',
+            'routing_key': 'metrics.system.cpustats',
+            'exchange': 'metrics',            
+            'exchange_type': 'direct',
+            'priority': 1,
+        },
+    },
+    'publish-temperature-60s': {
+        'task': 'pylibs.sidecars.metrics.app.publish_temps',
+        'schedule': 60.0*5,
+        'options': {
+            # 'queue': 'metrics.system.temps',
+            'routing_key': 'metrics.system.temps',
+            'exchange': 'metrics',            
+            'exchange_type': 'direct',
+            'priority': 1,
+        },
+    },
+    'publish-disk-usage-60s': {
+        'task': 'pylibs.sidecars.metrics.app.publish_diskusage',
+        'schedule': 60.0*5,
+        'options': {
+            # 'queue': 'metrics.system.diskusage',
+            'routing_key': 'metrics.system.diskusage',
+            'exchange': 'metrics',            
+            'exchange_type': 'direct',
+            'priority': 1,
+
+        },
+    },
+    'publish-netio-60s': {
+        'task': 'pylibs.sidecars.metrics.app.publish_netio',
+        'schedule': 60.0*5,
+        'options': {
+            # 'queue': 'metrics.system.netio',
+            'routing_key': 'metrics.system.netio',
+            'exchange': 'metrics',         
+            'exchange_type': 'direct',
+            'priority': 1,
+        },
+    },
+})
 metrics_exchange = Exchange('metrics', type='direct')
+
+# vmem_exchange = Exchange(
+#                     'metrics.system.vmem',
+#                     type='direct',
+#                     delivery_mode=1,
+# )
 default_exchange = Exchange('default', type='direct')
 celery.conf.task_queues = (
     Queue(
@@ -86,7 +200,11 @@ celery.conf.task_queues = (
         exchange=metrics_exchange,
         bindings=[
             binding(
-                exchange=metrics_exchange, 
+                exchange=Exchange(
+                    'metrics.system.vmem',
+                    type='direct',
+                    delivery_mode=1,
+                ),
                 routing_key='metrics.system.vmem'
             )
         ], 
@@ -160,94 +278,7 @@ celery.conf.task_default_queue = 'metrics.system'
 celery.conf.task_default_exchange = 'metrics'
 celery.conf.task_default_exchange_type = 'direct'
 celery.conf.task_default_routing_key = 'metrics.system'
-celery.conf.update(task_routes = {
-    'pylibs.sidecars.metrics.app.publish_vmem': 
-        {
-            'queue': 'metrics.system.vmem',
-            'routing_key': 'metrics.system.vmem'
-        }
-})
 
-celery.conf.update(beat_schedule = {
-    'publish-vmem-60s': {
-        'task': 'pylibs.sidecars.metrics.app.publish_vmem',
-        'schedule': 60.0,
-        'options': {
-            'queue': 'metrics.system.vmem',
-            'routing_key': 'metrics.system.vmem',
-            # 'exchange': 'metrics',            
-            'exchange_type': 'direct',
-            'priority': 1,
-        },
-    },
-    'publish-swap-60s': {
-        'task': 'pylibs.sidecars.metrics.app.publish_swap',
-        'schedule': 60.0,
-        'options': {
-            'queue': 'metrics.system.swap',
-            'routing_key': 'metrics.system.swap',
-            # 'exchange': 'metrics',            
-            'exchange_type': 'direct',
-            'priority': 1,
-        },
-    },
-    'publish-cputime-60s': {
-        'task': 'pylibs.sidecars.metrics.app.publish_cputime',
-        'schedule': 60.0,
-        'options': {
-            'queue': 'metrics.system.cputime',
-            'routing_key': 'metrics.system.cputime',
-            # 'exchange': 'metrics',            
-            'exchange_type': 'direct',
-            'priority': 1,
-        },
-    },
-    'publish-cpustats-60s': {
-        'task': 'pylibs.sidecars.metrics.app.publish_cpustats',
-        'schedule': 60.0,
-        'options': {
-            'queue': 'metrics.system.cpustats',
-            'routing_key': 'metrics.system.cpustats',
-            #'exchange': 'metrics',            
-            'exchange_type': 'direct',
-            'priority': 1,
-        },
-    },
-    'publish-temperature-60s': {
-        'task': 'pylibs.sidecars.metrics.app.publish_temps',
-        'schedule': 60.0,
-        'options': {
-            'queue': 'metrics.system.temps',
-            'routing_key': 'metrics.system.temps',
-            # 'exchange': 'metrics',            
-            'exchange_type': 'direct',
-            'priority': 1,
-        },
-    },
-    'publish-disk-usage-60s': {
-        'task': 'pylibs.sidecars.metrics.app.publish_diskusage',
-        'schedule': 60.0,
-        'options': {
-            'queue': 'metrics.system.diskusage',
-            'routing_key': 'metrics.system.diskusage',
-            # 'exchange': 'metrics',            
-            'exchange_type': 'direct',
-            'priority': 1,
-
-        },
-    },
-    'publish-netio-60s': {
-        'task': 'pylibs.sidecars.metrics.app.publish_netio',
-        'schedule': 60.0,
-        'options': {
-            'queue': 'metrics.system.netio',
-            'routing_key': 'metrics.system.netio',
-            # 'exchange': 'metrics',         
-            'exchange_type': 'direct',
-            'priority': 1,
-        },
-    },
-})
 celery.conf.timezone = 'UTC'
 
 # define Tasks
@@ -258,43 +289,54 @@ def test_celery(message):
 
 @celery.task(
     bind=True, 
-    queue='metrics.system.vmem', 
-    reply_to='metrics.system.vmem',
+    # queue='metrics.system.vmem', 
+    # reply_to='metrics.system.vmem',
     name='pylibs.sidecars.metrics.app.publish_vmem' 
 )
 def publish_vmem(self):
+    #print(self)
     metrics = SystemMetrics(interval=30)
     mem = metrics.vmem()
+    entry = SystemMetricVirtualMemory(**mem)
+    saved = entry.save()
+    print(saved)
     return dumps(mem)
 
 @celery.task(
     bind=True, 
-    queue='metrics.system.swap', 
+    # queue='metrics.system.swap', 
     name='pylibs.sidecars.metrics.app.publish_swap'
 )
 def publish_swap(self):
     metrics = SystemMetrics(interval=30)
     swap = metrics.swap()
+    entry = SystemMetricSwap(**swap)
+    saved = entry.save()
+    print(saved)
     return dumps(swap)
 
 @celery.task(
     bind=True, 
-    queue='metrics.system.cputime', 
+    # queue='metrics.system.cputime', 
     name='pylibs.sidecars.metrics.app.publish_cputime'
 )
 def publish_cputime(self):
     metrics = SystemMetrics(interval=30)
-    cputime = metrics.cputime()
-    return dumps(cputime)
+    cputimes = metrics.cputime()
+    entries = [SystemMetricCPUTime(**cputime).save() for cputime in cputimes]
+    print(entries)
+    return dumps(cputimes)
 
 @celery.task(
     bind=True, 
-    queue='metrics.system.cpustats', 
+    # queue='metrics.system.cpustats', 
     name='pylibs.sidecars.metrics.app.publish_cpustats'
 )
 def publish_cpustats(self):
     metrics = SystemMetrics(interval=30)
     cpustats = metrics.cpustats()
+    entry = SystemMetricCPUStats(**cpustats).save()
+    print(entry)
     return dumps(cpustats)
 
 @celery.task(
@@ -318,18 +360,22 @@ def publish_temps(self):
 )
 def publish_diskusage(self):
     metrics = SystemMetrics(interval=30)
-    usage = metrics.diskusage()
-    return dumps(usage)
+    usages = metrics.diskusage()
+    entries = [SystemMetricDiskUsageStats(**usage).save() for usage in usages]
+    print(entries)
+    return dumps(usages)
 
 @celery.task(
     bind=True, 
-    queue='metrics.system.netio', 
+    # queue='metrics.system.netio', 
     name='pylibs.sidecars.metrics.app.publish_netio'
 )
 def publish_netio(self):
     metrics = SystemMetrics(interval=30)
-    netio = metrics.netio()
-    return dumps(netio)
+    netios = metrics.netio()
+    entries = [SystemMetricNetIOStats(**netio).save() for netio in netios]
+    print(entries)
+    return dumps(netios)
 
 # setup Exchanges & Queues
 
@@ -368,29 +414,45 @@ def publish_netio(self):
 #     },
 # }
 
-app.config['MONGODB_SETTINGS'] = {
-    #'db': 'static',
-    'host': HEADUNIT_CONFIG.mongo_connection_string()
-}
+#app.config['MONGODB_SETTINGS'] = {
+#    #'db': 'static',
+    #'host': HEADUNIT_CONFIG.mongo_connection_string()
+#}
 db.init_app(app)
 
-@app.route('/api/v1/graphql', methods=['GET', 'POST'])
-def api_v1_graphql():
-    req_args = request.args
-    req_json = request.json
-    return GraphQLView.as_view(
-        'graphql',
-        schema=graphql.schema,
-        graphiql=True
-    )()
 
-@app.route('/api/v1/pi/system', methods=['GET'])
-def api_v1_pi_system():
-    req_args = request.args
+# comment old routes not related to metric functions
+# @app.route('/api/v1/graphql', methods=['GET', 'POST'])
+# def api_v1_graphql():
+#     req_args = request.args
+#     req_json = request.json
+#     return GraphQLView.as_view(
+#         'graphql',
+#         schema=graphql.schema,
+#         graphiql=True
+#     )()
+
+
+
+@app.route('/api/v1/metrics/system', methods=['GET', 'POST'])
+def api_v1_metrics_system():
+
+    metric_class_map = {
+        'vmem':  SystemMetricVirtualMemory,
+        'swap': SystemMetricSwap,
+        'cputime': SystemMetricCPUTime,
+        'cpustats': SystemMetricCPUStats,
+        'diskusage': SystemMetricDiskUsageStats,
+        'netio': SystemMetricNetIOStats,
+    }
+    #klass_map = {}
+    
+    args = request.args
+    metric_type = args.get('metric_type', 'vmem')
     req_json = request.json
     results = []
     try:
-        for obj in System.objects():
+        for obj in metric_class_map[metric_type].objects():
             #print(system.model)
             results.append(loads(obj.to_json()))
     except RuntimeError as err:
@@ -398,33 +460,33 @@ def api_v1_pi_system():
     finally:
         return jsonify(results)
 
-@app.route('/api/v1/pi/pin', methods=['GET'])
-def api_v1_pi_pin():
-    req_args = request.args
-    req_json = request.json
-    results = []
-    try:
-        for obj in Pin.objects():
-            #print(system.model)
-            results.append(loads(obj.to_json()))
-    except RuntimeError as err:
-        print('complete with result set')
-    finally:
-        return jsonify(results)
+# @app.route('/api/v1/pi/pin', methods=['GET'])
+# def api_v1_pi_pin():
+#     req_args = request.args
+#     req_json = request.json
+#     results = []
+#     try:
+#         for obj in Pin.objects():
+#             #print(system.model)
+#             results.append(loads(obj.to_json()))
+#     except RuntimeError as err:
+#         print('complete with result set')
+#     finally:
+#         return jsonify(results)
 
-@app.route('/api/v1/generic/relay', methods=['GET'])
-def api_v1_generic_relay():
-    req_args = request.args
-    req_json = request.json
-    results = []
-    try:
-        for obj in Relay.objects():
-            #print(system.model)
-            results.append(loads(obj.to_json()))
-    except RuntimeError as err:
-        print('complete with result set')
-    finally:
-        return jsonify(results)
+# @app.route('/api/v1/generic/relay', methods=['GET'])
+# def api_v1_generic_relay():
+#     req_args = request.args
+#     req_json = request.json
+#     results = []
+#     try:
+#         for obj in Relay.objects():
+#             #print(system.model)
+#             results.append(loads(obj.to_json()))
+#     except RuntimeError as err:
+#         print('complete with result set')
+#     finally:
+#         return jsonify(results)
 
 
 # @app.route('/api/v1/metrics/')

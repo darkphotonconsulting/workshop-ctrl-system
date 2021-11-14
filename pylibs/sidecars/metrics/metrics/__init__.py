@@ -61,8 +61,8 @@ def create_app(config=None):
         instance_relative_config=False,
     )
     app.config['MONGODB_SETTINGS'] = {
-        'db': 'static',
-        'host': HEADUNIT_CONFIG.mongo_connection_string()
+        'db': 'metrics-test',
+        'host': HEADUNIT_CONFIG.mongo_connection_string(mongo_database='dynamic')
     }
     
     
