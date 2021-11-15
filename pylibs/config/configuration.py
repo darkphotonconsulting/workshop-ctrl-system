@@ -10,6 +10,10 @@ import logging
 
 from collections import Iterable
 from urllib.parse import quote_plus
+
+from types import (
+    FunctionType
+)
 from typing import (
     Any,
     Union,
@@ -536,11 +540,24 @@ class Configuration(object, metaclass=abc.ABCMeta):
         cls,
         obj,
         attrib: str = None,
-    ):
+    ) -> bool:
+        #print(f"{dir(obj)}")
+        getter_code = compile(
+            f"def get_{attrib}(): return getattr(self, {attrib})",
+            "<string>",
+            "exec"
+        )
+        getter_func = FunctionType(getter_code.co_consts[0], globals(), f"get_{attrib}")
+        #print('getter function: ', getter_func)
         def getter():
             return getattr(obj, attrib)
-        
-        setattr(obj, f"get_{attrib}", getter)
+
+        try:
+            setattr(obj, f"get_{attrib}", getter)
+            
+            return True
+        except:
+            return False
 
     @classmethod
     def __add_setter(
@@ -568,6 +585,7 @@ class Configuration(object, metaclass=abc.ABCMeta):
                 cls.__add_setters(obj=obj, attribs=attribs[k])
             else:
                 cls.__add_setter(obj=obj, attrib=k, value=v)
+        
 
     @classmethod
     def __add_getters(
@@ -578,11 +596,19 @@ class Configuration(object, metaclass=abc.ABCMeta):
         """__add_getters add getters for attributes in attribs dict
         """
         for k, v in attribs.items():
+            # print(f"adding getter for {k}")
             if isinstance(v, dict): 
                 cls.__add_getter(obj, attrib=k)
                 cls.__add_getters(obj, attribs=attribs[k])
+                #print(k, id(obj),dir(obj))
+                
+                #return obj
             else:
                 cls.__add_getter(obj, attrib=k)
+                #print(k, id(obj),dir(obj))
+                #return obj
+        
+        #return obj
 
     @classmethod
     def __add_attributes(
@@ -640,9 +666,10 @@ class Configuration(object, metaclass=abc.ABCMeta):
         self.config = kwargs
         self.keys = list(kwargs.keys())
         self.__class__.__add_attributes(obj=self, attribs=self.config)
+        print(f"adding getters and setters..")
         self.__class__.__add_getters(obj=self, attribs=self.config)
         self.__class__.__add_setters(obj=self, attribs=self.config)
-        self.__dict__ = self.__class__.__clean_dict(attribs=self.__dict__)
+        #self.__dict__ = self.__class__.__clean_dict(attribs=self.__dict__)
         #print('flattened config: ',json.dumps(kwargs, indent=2))
 
     # def __dict__(self,
@@ -655,7 +682,12 @@ class Configuration(object, metaclass=abc.ABCMeta):
         """
         print(json.dumps(self.config, indent=2))
         
-    def mongo_connection_string(self, 
+    def mongo_connection_string(self,
+        mongo_host: str = None,
+        mongo_port: int = None,
+        mongo_username: str = None,
+        mongo_password: str = None,
+        mongo_database: str = None,
     ) -> str:
         """mongo_connection_string - generates mongodb connection string based on provided values
 
@@ -698,18 +730,49 @@ class Configuration(object, metaclass=abc.ABCMeta):
         
             str: a usable mongodb connection string
         """
-        if hasattr(self, 'mongo_username') and hasattr(self, 'mongo_password'):  # auth args passed
-            if not hasattr(self, 'mongo_database'):
-                return f"mongodb://{self.mongo_username}:{self.mongo_password}@{self.mongo_host}:{self.mongo_port}"
-            else:
-                return f"mongodb://{self.mongo_username}:{self.mongo_password}@{self.mongo_host}:{self.mongo_port}/{self.mongo_database}"
-        else:  #generate noauth connection string
-            if not hasattr(self, 'mongo_database'):
-                return f"mongodb://{self.mongo_host}:{self.mongo_port}"
-            else:
-                return f"mongodb://{self.mongo_host}:{self.mongo_port}/{self.mongo_database}"
+        #mongo_host = getattr(self, 'mongo_host') if (hasattr(self, 'mongo_host') and mongo_host is None) else mongo_host
+        mongo_host = mongo_host if mongo_host is not None else getattr(self, 'mongo_host')
+        #mongo_port = getattr(self, 'mongo_port') if (hasattr(self, 'mongo_port') and mongo_port is None) else mongo_port
+        mongo_port = mongo_port if mongo_port is not None else getattr(self, 'mongo_port')
+
+        # auth on or off
+        if ( (hasattr(self, 'mongo_username') or mongo_username is not None) and (hasattr(self, 'mongo_password') or mongo_password is not None)): #auth is enabled
+            mongo_username = mongo_username if mongo_username is not None else getattr(self, 'mongo_username')
+            #mongo_username = getattr(self, 'mongo_username') if mongo_username is None else mongo_username
+            #mongo_password = getattr(self, 'mongo_password') if mongo_password is None else mongo_password
+            mongo_password = mongo_password if mongo_password is not None else getattr(self, 'mongo_password')
+            if (hasattr(self, 'mongo_database') or mongo_database is not None): # use a database
+                mongo_database = mongo_database if mongo_database is not None else getattr(self, 'mongo_database')
+                return f"mongodb://{mongo_username}:{mongo_password}@{mongo_host}:{mongo_port}/{mongo_database}"
+                #return f"mongodb://{self.mongo_username}:{self.mongo_password}@{self.mongo_host}:{self.mongo_port}"
+            else: # dont use a database
+                return f"mongodb://{mongo_username}:{mongo_password}@{mongo_host}:{mongo_port}"
+        else: # auth is disabled
+            if (hasattr(self, 'mongo_database') or mongo_database is not None): # use a database
+                mongo_database = mongo_database if mongo_database is not None else getattr(self, 'mongo_database')
+                return f"mongodb://{mongo_host}:{mongo_port}/{mongo_database}"
+                #return f"mongodb://{self.mongo_username}:{self.mongo_password}@{self.mongo_host}:{self.mongo_port}"
+            else: # dont use a database
+                return f"mongodb://{mongo_host}:{mongo_port}"
+            #mongo_port = getattr(self, 'mongo_port') if (hasattr(self, 'mongo_port') and mongo_port is None) else mongo_port
+        
+        # if hasattr(self, 'mongo_username') and hasattr(self, 'mongo_password'):  # auth args passed
+        #     if not hasattr(self, 'mongo_database'):
+        #         return f"mongodb://{self.mongo_username}:{self.mongo_password}@{self.mongo_host}:{self.mongo_port}"
+        #     else:
+        #         return f"mongodb://{self.mongo_username}:{self.mongo_password}@{self.mongo_host}:{self.mongo_port}/{self.mongo_database}"
+        # else:  #generate noauth connection string
+        #     if not hasattr(self, 'mongo_database'):
+        #         return f"mongodb://{self.mongo_host}:{self.mongo_port}"
+        #     else:
+        #         return f"mongodb://{self.mongo_host}:{self.mongo_port}/{self.mongo_database}"
 
     def validate_mongo_connection_string(self, 
+        mongo_host: str = None,
+        mongo_port: int = None,
+        mongo_username: str = None,
+        mongo_password: str = None,
+        mongo_database: str = None,
     )-> bool:
         """validate_mongo_connection_string validate a mongodb connection string
 
@@ -719,7 +782,13 @@ class Configuration(object, metaclass=abc.ABCMeta):
         """
 
         try:
-            client = MongoClient(self.mongo_connection_string())
+            client = MongoClient(self.mongo_connection_string(
+                mongo_host=mongo_host,
+                mongo_port=mongo_port,
+                mongo_username=mongo_username,
+                mongo_password=mongo_password,
+                mongo_database=mongo_database,
+            ))
             if 'version' in client.server_info():
                 self.__class__.logger.info('connected')
                 return True
