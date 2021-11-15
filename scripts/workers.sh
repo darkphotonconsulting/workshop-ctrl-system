@@ -7,7 +7,7 @@ RUN_PATH='./run'
 function start_worker() {
     local module="$1"
     
-    /usr/bin/python3.7 -m celery -A "${module}" worker -Q metrics -l DEBUG  -E -D --logfile "${RUN_PATH}/${module}-worker.log" --pidfile "${RUN_PATH}/${module}-worker.pid"
+    /usr/bin/python3.7 -m celery -A "${module}" worker  -l DEBUG  -E -D --logfile "${RUN_PATH}/${module}-worker.log" --pidfile "${RUN_PATH}/${module}-worker.pid"
 }
 
 # function stop_worker() {
