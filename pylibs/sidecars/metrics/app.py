@@ -7,7 +7,7 @@ from os import (
     environ,
     urandom
 )
-#import sys
+
 from json import (
     loads, 
     dumps
@@ -19,51 +19,52 @@ from sys import (
     modules
 )
 
-from psutil import (
-    cpu_times
-)
+# from psutil import (
+#     cpu_times
+# )
 
-from flask import Flask
-from flask_mongoengine import MongoEngine, Document
+#from flask import Flask
+#from flask_mongoengine import MongoEngine, Document
 #import celery
-from celery import Celery, Task
-from celery.schedules import crontab
+#from celery import Celery, Task
+#from celery.schedules import crontab
 
 from kombu import Exchange, Queue, binding
 from flask import flash, jsonify
 from flask import request, redirect
-from flask_graphql import GraphQLView
+#from flask_graphql import GraphQLView
 from json import loads
 from .config import HEADUNIT_CONFIG
 from .metrics import create_app
 from .metrics.model import db, graphql 
-from .metrics.model import System, Relay, Pin
+#from .metrics.model import System, Relay, Pin
 from .metrics.middleware import middleware
 
 current_dir = dirname(abspath(__file__))
 libs = "/".join(current_dir.split('/')[0:-4])
 path.append(libs)
-# set default configuration file 
-from pylibs.database.orm_schemas import System, Relay, Pin
-from pylibs.database.orm_schemas import (
-    SystemMetricVirtualMemory,
-    SystemMetricCPUStats,
-    SystemMetricSwap,
-    SystemMetricCPUTime,
-    SystemMetricDiskUsageStats,
-    SystemMetricNetIOStats
+
+from pylibs.database.static_schemas import (
+    System, 
+    Relay, 
+    Pin
 )
+
+from pylibs.database.dynamic_schemas import (
+    SystemMetricCPUStats,
+    SystemMetricCPUTime,
+    SystemMetricVirtualMemory,
+    SystemMetricSwap,
+    SystemMetricDiskUsageStats,
+    SystemMetricNetIOStats,
+)
+
 from pylibs.metrics.system import SystemMetrics
 from pylibs.mq.rabbit import (
-    Rabbit, 
-    RabbitAdmin
+    Rabbit
 )
-#from pylibs.logging.loginator import Loginator
 
 
-
-
-#t = Task()
 rabbit = Rabbit(
     broker_host='127.0.0.1',
     broker_port=5672,
@@ -76,13 +77,15 @@ celery = middleware(
 
     
 celery.conf.task_create_missing_queues = False
-celery.conf.update(task_routes = {
-    'pylibs.sidecars.metrics.app.publish_vmem': 
-        {
-            'queue': 'metrics.system.vmem',
-            'routing_key': 'metrics.system.vmem'
-        }
-})
+celery.conf.update(
+    task_routes = {
+        'pylibs.sidecars.metrics.app.publish_vmem': 
+            {
+                'queue': 'metrics.system.vmem',
+                'routing_key': 'metrics.system.vmem'
+            }
+    }
+)
 
 celery.conf.update(beat_schedule = {
     'publish-vmem-60s': {
@@ -166,11 +169,7 @@ celery.conf.update(beat_schedule = {
 })
 metrics_exchange = Exchange('metrics', type='direct')
 
-# vmem_exchange = Exchange(
-#                     'metrics.system.vmem',
-#                     type='direct',
-#                     delivery_mode=1,
-# )
+
 default_exchange = Exchange('default', type='direct')
 celery.conf.task_queues = (
     Queue(
@@ -377,64 +376,14 @@ def publish_netio(self):
     print(entries)
     return dumps(netios)
 
-# setup Exchanges & Queues
-
-# celery.conf.task_default_queue = 'metrics'
-# celery.conf.task_queues = (
-#     Queue('metrics', routing_key='metric.*')
-# )
-# celery.conf.task_routes = {
-#     'pylibs.sidecars.metrics.app.publish_vmem': {
-#         'queue': 'metrics',
-#         'routing_key': 'metric.system.vmem'
-#     },
-#     'pylibs.sidecars.metrics.app.publish_swap': {
-#         'queue': 'metrics',
-#         'routing_key': 'metric.system.swap'
-#     },
-#     'pylibs.sidecars.metrics.app.publish_cputime': {
-#         'queue': 'metrics',
-#         'routing_key': 'metric.system.cputime'
-#     },
-#     'pylibs.sidecars.metrics.app.publish_cpustats': {
-#         'queue': 'metrics',
-#         'routing_key': 'metric.system.cpustats'
-#     },
-#     'pylibs.sidecars.metrics.app.publish_temps': {
-#         'queue': 'metrics',
-#         'routing_key': 'metric.system.temperature'
-#     },
-#     'pylibs.sidecars.metrics.app.publish_diskusage': {
-#         'queue': 'metrics',
-#         'routing_key': 'metric.system.diskusage'
-#     },
-#     'pylibs.sidecars.metrics.app.publish_netio': {
-#         'queue': 'metrics',
-#         'routing_key': 'metric.system.netio'
-#     },
-# }
-
-#app.config['MONGODB_SETTINGS'] = {
-#    #'db': 'static',
-    #'host': HEADUNIT_CONFIG.mongo_connection_string()
-#}
 db.init_app(app)
 
 
-# comment old routes not related to metric functions
-# @app.route('/api/v1/graphql', methods=['GET', 'POST'])
-# def api_v1_graphql():
-#     req_args = request.args
-#     req_json = request.json
-#     return GraphQLView.as_view(
-#         'graphql',
-#         schema=graphql.schema,
-#         graphiql=True
-#     )()
-
-
-
-@app.route('/api/v1/metrics/system', methods=['GET', 'POST'])
+@app.route(rule='/api/v1/metrics/system', 
+           methods=[
+               'GET', 
+               'POST']
+)
 def api_v1_metrics_system():
 
     metric_class_map = {
