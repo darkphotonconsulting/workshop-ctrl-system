@@ -44,3 +44,6 @@ arduino/include
 arduino/src
 arduino/test
 build-*
+
+# ignore db-s logs, etc
+run
