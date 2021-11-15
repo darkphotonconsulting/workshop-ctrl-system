@@ -36,6 +36,7 @@ from typing import (
 
 from requests import (
     get,
+    put,
     post,
     patch,
     delete,
@@ -70,6 +71,7 @@ libs = "/".join(current_dir.split('/')[0:-2])
 path.append(libs)
 
 
+from pylibs.config.configuration import ConfigLoader, Configuration
 
 
 MQ_TYPE = 'rabbitmq'
@@ -178,6 +180,24 @@ class RabbitAdmin(object):
         response = get(urljoin(base=self.manager, url='api/vhosts'), auth=(self.broker_mgmt_user, self.broker_mgmt_password))
         return [vhost for vhost in response.json()]
 
+    def create_vhost(
+        self,
+        vhost_name: str = None
+    ) -> bool:
+        response = put(urljoin(base=self.manager, url=f"api/vhosts/{vhost_name}"), auth=(self.broker_mgmt_user, self.broker_mgmt_password))
+        if vhost_name in [vhost['name'] for vhost in self.list_vhosts()]:
+            return True 
+        else: return False
+
+    def delete_vhost(
+        self,
+        vhost_name: str = None
+    ) -> bool:
+        response = delete(urljoin(base=self.manager, url=f"api/vhosts/{vhost_name}"), auth=(self.broker_mgmt_user, self.broker_mgmt_password))
+        if vhost_name in [vhost['name'] for vhost in self.list_vhosts()]:
+            return False 
+        else: return True
+
     def list_nodes(
         self,
     ) -> dict:
@@ -281,6 +301,8 @@ class Rabbit(object):
             message = message
         elif isinstance(message, (dict, list)):
             message = dumps(message)
+
+        print(f"queue is {queue}")
 
         return channel.basic_publish(
             exchange=exchange,
