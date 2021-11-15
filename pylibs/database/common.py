@@ -263,6 +263,53 @@ class Mongo(object, metaclass=ABCMeta):
             )
         else: return False
 
+    def get_users(self,
+        database_name: str = None
+    ):
+        """get_users [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+        """
+        db = self.__class__.__get_database(
+            client=self.client, 
+            database_name=database_name
+        )
+        return db.command('usersInfo')
+
+    def add_user(self,
+        database_name: str = None,
+        username: str = None,
+        pwd: str = None,
+        roles: list = None,
+    ) -> bool:
+        """add_user [summary]
+
+        [extended_summary]
+
+        Args:
+            database_name (str, optional): [description]. Defaults to None.
+            username (str, optional): [description]. Defaults to None.
+            pwd (str, optional): [description]. Defaults to None.
+            roles (list, optional): [description]. Defaults to None.
+        """
+        db = self.__class__.__get_database(
+            client=self.client, 
+            database_name=database_name
+        )
+        ret = db.command(
+            "createUser",
+            username,
+            pwd=pwd,
+            roles=roles,
+        )
+        if ret.get('ok', None) is not None and ret.get('ok', 0) == 1:
+            return True
+        else: return False
+        
+
     def drop_database(self,
         database_name: str = None,
     ) -> bool:
