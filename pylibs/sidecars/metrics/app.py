@@ -32,23 +32,17 @@ from sys import (
 from kombu import Exchange, Queue, binding
 from flask import flash, jsonify
 from flask import request, redirect
-#from flask_graphql import GraphQLView
+from flask_graphql import GraphQLView
 from json import loads
 from .config import HEADUNIT_CONFIG
 from .metrics import create_app
-from .metrics.model import db, graphql 
-#from .metrics.model import System, Relay, Pin
 from .metrics.middleware import middleware
+from .metrics.model import db, graphql
 
 current_dir = dirname(abspath(__file__))
 libs = "/".join(current_dir.split('/')[0:-4])
 path.append(libs)
 
-from pylibs.database.static_schemas import (
-    System, 
-    Relay, 
-    Pin
-)
 
 from pylibs.database.dynamic_schemas import (
     SystemMetricCPUStats,
@@ -59,22 +53,49 @@ from pylibs.database.dynamic_schemas import (
     SystemMetricNetIOStats,
 )
 
-from pylibs.metrics.system import SystemMetrics
+from pylibs.metrics.system import (
+    SystemMetrics
+)
+
+from pylibs.docker.containerflow import (
+    build,
+    run,
+    rmi,
+    image_list,
+    container_list,
+)
+
 from pylibs.mq.rabbit import (
     Rabbit
 )
 
 
-rabbit = Rabbit(
-    broker_host='127.0.0.1',
-    broker_port=5672,
-)
+# rabbit = Rabbit(
+#     config=HEADUNIT_CONFIG
+# )
+# print(HEADUNIT_CONFIG.containers)
 app = create_app()
 celery = middleware(
     app=app
 )
 
+## start a rabbitmq container if one is not running 
 
+# if HEADUNIT_CONFIG.rabbitmq_image_tag not in container_list():
+#     if HEADUNIT_CONFIG.rabbitmq_image_tag not in image_list():
+#         build(
+#             image_tag=HEADUNIT_CONFIG.rabbitmq_image_tag, 
+#             dockerfile=HEADUNIT_CONFIG.rabbitmq_dockerfile
+#         )
+#         run(
+#             image_name=HEADUNIT_CONFIG.rabbitmq_image_tag,
+#             ports={i[0]: i[1] for i in HEADUNIT_CONFIG.rabbitmq_ports}
+#         )
+#     else:
+#         run(
+#             image_name=HEADUNIT_CONFIG.rabbitmq_image_tag,
+#             ports={i[0]: i[1] for i in HEADUNIT_CONFIG.rabbitmq_ports}
+#         )
     
 celery.conf.task_create_missing_queues = False
 celery.conf.update(
@@ -167,10 +188,13 @@ celery.conf.update(beat_schedule = {
         },
     },
 })
+
+# metrics application exchanges 
+
 metrics_exchange = Exchange('metrics', type='direct')
-
-
 default_exchange = Exchange('default', type='direct')
+
+# metrics application queues
 celery.conf.task_queues = (
     Queue(
         name='default', 
@@ -271,25 +295,21 @@ celery.conf.task_queues = (
         routing_key='metrics.system.netio'),
 )
 
-# AMQP defaults
+# celery AMQP defaults
 celery.conf.default_queue = 'metrics.system'
 celery.conf.task_default_queue = 'metrics.system'
 celery.conf.task_default_exchange = 'metrics'
 celery.conf.task_default_exchange_type = 'direct'
 celery.conf.task_default_routing_key = 'metrics.system'
-
 celery.conf.timezone = 'UTC'
 
 # define Tasks
-
 @celery.task()
 def test_celery(message):
     return message
 
 @celery.task(
     bind=True, 
-    # queue='metrics.system.vmem', 
-    # reply_to='metrics.system.vmem',
     name='pylibs.sidecars.metrics.app.publish_vmem' 
 )
 def publish_vmem(self):
@@ -303,7 +323,6 @@ def publish_vmem(self):
 
 @celery.task(
     bind=True, 
-    # queue='metrics.system.swap', 
     name='pylibs.sidecars.metrics.app.publish_swap'
 )
 def publish_swap(self):
@@ -311,7 +330,7 @@ def publish_swap(self):
     swap = metrics.swap()
     entry = SystemMetricSwap(**swap)
     saved = entry.save()
-    print(saved)
+
     return dumps(swap)
 
 @celery.task(
@@ -323,7 +342,6 @@ def publish_cputime(self):
     metrics = SystemMetrics(interval=30)
     cputimes = metrics.cputime()
     entries = [SystemMetricCPUTime(**cputime).save() for cputime in cputimes]
-    print(entries)
     return dumps(cputimes)
 
 @celery.task(
@@ -335,7 +353,6 @@ def publish_cpustats(self):
     metrics = SystemMetrics(interval=30)
     cpustats = metrics.cpustats()
     entry = SystemMetricCPUStats(**cpustats).save()
-    print(entry)
     return dumps(cpustats)
 
 @celery.task(
@@ -361,7 +378,6 @@ def publish_diskusage(self):
     metrics = SystemMetrics(interval=30)
     usages = metrics.diskusage()
     entries = [SystemMetricDiskUsageStats(**usage).save() for usage in usages]
-    print(entries)
     return dumps(usages)
 
 @celery.task(
@@ -373,16 +389,30 @@ def publish_netio(self):
     metrics = SystemMetrics(interval=30)
     netios = metrics.netio()
     entries = [SystemMetricNetIOStats(**netio).save() for netio in netios]
-    print(entries)
     return dumps(netios)
 
 db.init_app(app)
 
 
+@app.route(rule='/api/v1/metrics/system/graphql', 
+    methods=[
+        'GET',
+        'POST'
+    ]
+)
+def api_v1_metrics_system_graphql():
+    return GraphQLView.as_view(
+        'graphql',
+        schema=graphql.schema,
+        graphiql=True,
+    )()
+    
 @app.route(rule='/api/v1/metrics/system', 
-           methods=[
-               'GET', 
-               'POST']
+    methods=[
+        'GET', 
+        'POST',
+        'DELETE'
+    ]
 )
 def api_v1_metrics_system():
 
@@ -394,51 +424,45 @@ def api_v1_metrics_system():
         'diskusage': SystemMetricDiskUsageStats,
         'netio': SystemMetricNetIOStats,
     }
-    #klass_map = {}
+    
     
     args = request.args
     metric_type = args.get('metric_type', 'vmem')
+    order_by = args.get('order_by', 'timestamp')
+    start = args.get('start', 0)
+    end = args.get('end', -1)
     req_json = request.json
     results = []
     try:
-        for obj in metric_class_map[metric_type].objects():
-            #print(system.model)
-            results.append(loads(obj.to_json()))
+        if request.method in ['GET', 'POST']:
+            if req_json is None:
+                objs = metric_class_map[metric_type].objects().order_by(order_by)#[start:]
+                print("printing all objects")
+            else:
+                objs = metric_class_map[metric_type].objects(**req_json).order_by(order_by)#[start:]
+                print("printing selected objects")
+
+            for obj in objs:
+                #print(system.model)
+                results.append(loads(obj.to_json()))
+        elif request.method in ['DELETE']:
+            if req_json is None:
+                objs = metric_class_map[metric_type].objects().order_by(order_by)
+                print("deleting all objects")
+
+            else:
+                objs = metric_class_map[metric_type].objects(**req_json).order_by(order_by)
+                print("deleting selected objects")
+
+            for obj in objs:
+                print('deleting: ', f"{obj.to_json()}")
+                results.append(loads(obj.to_json()))
+                obj.delete()
+                # should actually return remaining results?
     except RuntimeError as err:
         print('complete with result set')
     finally:
         return jsonify(results)
-
-# @app.route('/api/v1/pi/pin', methods=['GET'])
-# def api_v1_pi_pin():
-#     req_args = request.args
-#     req_json = request.json
-#     results = []
-#     try:
-#         for obj in Pin.objects():
-#             #print(system.model)
-#             results.append(loads(obj.to_json()))
-#     except RuntimeError as err:
-#         print('complete with result set')
-#     finally:
-#         return jsonify(results)
-
-# @app.route('/api/v1/generic/relay', methods=['GET'])
-# def api_v1_generic_relay():
-#     req_args = request.args
-#     req_json = request.json
-#     results = []
-#     try:
-#         for obj in Relay.objects():
-#             #print(system.model)
-#             results.append(loads(obj.to_json()))
-#     except RuntimeError as err:
-#         print('complete with result set')
-#     finally:
-#         return jsonify(results)
-
-
-# @app.route('/api/v1/metrics/')
 
 
 def run(
