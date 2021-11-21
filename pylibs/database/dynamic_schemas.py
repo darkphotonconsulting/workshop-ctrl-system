@@ -13,6 +13,7 @@ from mongoengine import (
     StringField,
     EmbeddedDocumentField,
     IntField,
+    LongField,
     FloatField,
     DateTimeField,
     ListField,
@@ -48,10 +49,10 @@ class SystemMetricDiskUsageStats(Document):
     }
 
     #"bytes_sent": 822508822, "bytes_recv": 822508822, "packets_sent": 3840450, "packets_recv": 3840450, "errin": 0, "errout": 0, "dropin": 0, "dropout": 0, "nic": "lo", "timestamp": 1636899341.879417}
-    total = IntField()
-    used = IntField()
-    free = IntField()
-    percent = FloatField()
+    total = LongField()
+    used = LongField()
+    free = LongField()
+    percent = IntField()
     mountpoint = StringField()
     timestamp = FloatField()
 
@@ -67,16 +68,21 @@ class SystemMetricNetIOStats(Document):
     }
 
     #"bytes_sent": 822508822, "bytes_recv": 822508822, "packets_sent": 3840450, "packets_recv": 3840450, "errin": 0, "errout": 0, "dropin": 0, "dropout": 0, "nic": "lo", "timestamp": 1636899341.879417}
-    bytes_sent = IntField()
-    bytes_recv = IntField()
-    packets_sent = IntField()
-    packets_recv = IntField()
-    errin = IntField()
-    errout = IntField()
-    dropin = IntField()
-    dropout = IntField()
+    bytes_sent = LongField()
+    bytes_recv = LongField()
+    packets_sent = LongField()
+    packets_recv = LongField()
+    errin = LongField()
+    errout = LongField()
+    dropin = LongField()
+    dropout = LongField()
     nic = StringField()
     timestamp = FloatField()
+
+class SystemMetricNetIOStatsGraphQL(MongoengineObjectType):
+    class Meta:
+        model = SystemMetricNetIOStats
+        interfaces = (Node,)
 
 class SystemMetricDiskUsageStatsGraphQL(MongoengineObjectType):
     class Meta:
@@ -88,10 +94,10 @@ class SystemMetricCPUStats(Document):
     meta = {
         'collection': 'metrics-system-cpustats'
     }
-    ctx_switches = IntField()
-    interrupts = IntField()
-    soft_interrupts = IntField()
-    syscalls = IntField()
+    ctx_switches = LongField()
+    interrupts = LongField()
+    soft_interrupts = LongField()
+    syscalls = LongField()
     timestamp = FloatField()
 
 class SystemMetricCPUStatsGraphQL(MongoengineObjectType):
@@ -127,28 +133,68 @@ class SystemMetricVirtualMemory(Document):
         'collection': 'metrics-system-vmem'
     }
     #{"total": 8282419200, "available": 6776385536, "percent": 18.2, "used": 1402552320, "free": 5338615808, "active": 769622016, "inactive": 1995055104, "buffers": 221069312, "cached": 1320181760, "shared": 22982656, "slab": 124493824, "timestamp": 1636718116.904633}
-    total = IntField()
-    available = IntField()
+    total = LongField()
+    available = LongField()
     percent = FloatField()
-    used = IntField()
-    free = IntField()
-    active = IntField()
-    inactive = IntField()
-    buffers = IntField()
-    cached = IntField()
-    shared = IntField()
-    slab = IntField()
+    used = LongField()
+    free = LongField()
+    active = LongField()
+    inactive = LongField()
+    buffers = LongField()
+    cached = LongField()
+    shared = LongField()
+    slab = LongField()
     timestamp = FloatField()
+
+class SystemMetricVirtualMemoryGraphQL(MongoengineObjectType):
+    class Meta:
+        model = SystemMetricVirtualMemory
+        interfaces = (Node,)
 
 class SystemMetricSwap(Document):
     meta = {
         'collection': 'metrics-system-swap'
     }
     #{"total": 8282419200, "available": 6776385536, "percent": 18.2, "used": 1402552320, "free": 5338615808, "active": 769622016, "inactive": 1995055104, "buffers": 221069312, "cached": 1320181760, "shared": 22982656, "slab": 124493824, "timestamp": 1636718116.904633}
-    total = IntField()
-    used = IntField()
-    free = IntField()
+    total = LongField()
+    used = LongField()
+    free = LongField()
     percent = FloatField()
-    sin = IntField()
-    sout = IntField()
+    sin = LongField()
+    sout = LongField()
     timestamp = FloatField()
+
+class SystemMetricSwapGraphQL(MongoengineObjectType):
+    class Meta:
+        model = SystemMetricSwap
+        interfaces = (Node,)
+
+class Query(ObjectType):
+    node = Node.Field()
+    all_vmem = MongoengineConnectionField(SystemMetricVirtualMemoryGraphQL)
+    all_swap = MongoengineConnectionField(SystemMetricSwapGraphQL)
+    all_cputime = MongoengineConnectionField(SystemMetricCPUTimeGraphQL)
+    all_cpustats = MongoengineConnectionField(SystemMetricCPUStatsGraphQL)
+    all_diskusage = MongoengineConnectionField(SystemMetricDiskUsageStatsGraphQL)
+    all_netio = MongoengineConnectionField(SystemMetricNetIOStatsGraphQL)
+
+
+class GraphQLFactory():
+    def __init__(self, query: Query, types: list):
+        self.query = query
+        self.types = types
+        self.schema = Schema(
+            query=self.query,
+            types=self.types
+        )
+
+graphql = GraphQLFactory(
+    Query, 
+    [
+        SystemMetricVirtualMemoryGraphQL, 
+        SystemMetricSwapGraphQL, 
+        SystemMetricCPUTimeGraphQL, 
+        SystemMetricCPUStatsGraphQL,
+        SystemMetricNetIOStatsGraphQL 
+        ]
+)
