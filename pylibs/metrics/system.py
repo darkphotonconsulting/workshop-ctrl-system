@@ -127,6 +127,7 @@ class Metrics(object, metaclass=ABCMeta):
 
         
 class SystemMetrics(Metrics):
+
     def __init__(self,
         interval: Union[int, float] = None,
     ) -> None:
@@ -165,6 +166,23 @@ class SystemMetrics(Metrics):
                 **virtual_memory()._asdict(),
                 timestamp=timestamp
         )
+        as_bytes = [
+            'total', 
+            'available', 
+            'used', 
+            'free', 
+            'active', 
+            'inactive', 
+            'buffers', 
+            'cached', 
+            'shared', 
+            'slab', 
+            
+        ]
+        for k,v in data.items():
+            if k in as_bytes:
+                data[k] = v / 1e3
+        # need to convert these values from bytes to 
         return data
 
         
