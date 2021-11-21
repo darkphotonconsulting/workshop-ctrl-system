@@ -40,7 +40,6 @@ if 'HEADUNIT_CONFIG' not in environ:
     environ['HEADUNIT_CONFIG'] = 'settings/config.json'
 
 from pylibs.config.configuration import (ConfigLoader, Configuration)
-from pylibs.database.orm_schemas import System, Relay, Pin
 from pylibs.logging.loginator import Loginator
 
 
