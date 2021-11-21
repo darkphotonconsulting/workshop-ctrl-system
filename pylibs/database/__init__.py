@@ -13,6 +13,7 @@ __all__ = [
     'common',
     'engines',
     'schemas',
-    'orm_schemas',
+    'static_schemas',
+    'dynamic_schemas',
     'factory',
 ]
