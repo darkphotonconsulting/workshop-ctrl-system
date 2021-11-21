@@ -681,6 +681,47 @@ class Configuration(object, metaclass=abc.ABCMeta):
         """print_config print configured object values
         """
         print(json.dumps(self.config, indent=2))
+
+    def amqp_connection_string(self,
+        broker_host: str = None,
+        broker_port: int = None,
+        broker_username: str = None,
+        broker_password: str = None,
+        broker_vhost: str = None,
+    ) -> str:
+        """amqp_connection_string [summary]
+
+        [extended_summary]
+
+        Args:
+            broker_host (str, optional): [description]. Defaults to None.
+            broker_port (int, optional): [description]. Defaults to None.
+            broker_username (str, optional): [description]. Defaults to None.
+            broker_password (str, optional): [description]. Defaults to None.
+            broker_vhost (str, optional): [description]. Defaults to None.
+
+        Returns:
+            str: [description]
+        """
+        broker_host = broker_host or getattr(self, 'broker_host', '127.0.0.1')
+        broker_port = broker_port or getattr(self, 'broker_port', 5672)
+        broker_username = broker_username or getattr(self, 'broker_username', None)
+        broker_password = broker_password or getattr(self, 'broker_password', None)
+        broker_vhost = broker_vhost or getattr(self, 'broker_vhost', None)
+
+        if broker_username is None or broker_password is None:
+            if broker_vhost is None:
+                return f"amqp://{broker_host}:{broker_port}"
+            else:
+                return f"amqp://{broker_host}:{broker_port}/{broker_vhost}"
+        else: 
+            if broker_vhost is None:
+                return f"amqp://{broker_username}:{broker_password}@{broker_host}:{broker_port}"
+            else: 
+                return f"amqp://{broker_username}:{broker_password}@{broker_host}:{broker_port}/{broker_vhost}"
+        
+        
+        
         
     def mongo_connection_string(self,
         mongo_host: str = None,
