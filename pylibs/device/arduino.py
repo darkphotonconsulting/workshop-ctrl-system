@@ -379,6 +379,7 @@ class ArduinoInfo(object):
 
             # firmata data
             board = Pymata4()
+            self.board = board
             #print(dir(self.board))
             #print(type(self.board))
             self.analog_pins = [i for i,analog in enumerate(board.get_analog_map()) if analog != 127]
